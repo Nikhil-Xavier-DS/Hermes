@@ -1,7 +1,11 @@
 import tensorflow as tf
-from tensorflow.keras import Model
+from tensorflow.keras import layers, Model
+from tensorflow.keras.layers import Layer, RNN, GRU, LSTM, Bidirectional, Embedding
+from tensorflow.python.keras.engine.input_spec import InputSpec
+from tensorflow.python.keras import initializers, activations, regularizers, constraints
 from Hermes.attention_model.attention import BahdanauAttention
-from Hermes.encoder_model.encoder import HybridBLSTMEncoder
+from Hermes.encoder_model.encoder import \
+    LSTMEncoder
 from Hermes.decoder_model.decoder import LSTMDecoder
 
 MAX_LENGTH_TARGET = 10
@@ -10,16 +14,16 @@ BATCH_SIZE = 1
 EPOCHS = 1
 
 
-class SeqToSeqHybridBLSTM(Model):
+class SeqToSeqLSTM(Model):
     """
-    Create Hybrid BLSTM LSTM based Encoder Decoder Sequence to Sequence model.
+    Create LSTM LSTM based Encoder Decoder Sequence to Sequence model.
     --------------------------------------------------------------------------
     Inputs:
-
+    
     """
 
     def __init__(self, batch_size=BATCH_SIZE, **kwargs):
-        super(SeqToSeqHybridBLSTM, self).__init__(name="SeqToSeq Hybrid BLSTM LSTM", **kwargs)
+        super(SeqToSeqLSTM, self).__init__(name="SeqToSeq LSTM LSTM", **kwargs)
         required_fields = ['vocab_size', 'vocab_size_out', 'embedding_dim', 'enc_units', 'dec_units', 'word_id',
                            'word_id_out']
         self.batch_size = batch_size
@@ -28,7 +32,7 @@ class SeqToSeqHybridBLSTM(Model):
         if not all(name in kwargs for name in required_fields):
             raise Exception("Requires ", ",".join(required_fields))
         else:
-            self.encoder = HybridBLSTMEncoder(kwargs['vocab_size'], kwargs['embedding_dim'], kwargs['enc_units'], batch_size)
+            self.encoder = LSTMEncoder(kwargs['vocab_size'], kwargs['embedding_dim'], kwargs['enc_units'], batch_size)
             if 'att_units' in kwargs:
                 self.att_units = kwargs['att_units']
             else:
