@@ -2,9 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="28e474f5-654b-4653-abcc-22a7506dd2ca" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/attention_model/attention.py" beforeDir="false" afterPath="$PROJECT_DIR$/attention_model/attention.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/decoder_model/decoder.py" beforeDir="false" afterPath="$PROJECT_DIR$/decoder_model/decoder.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/encoder_model/encoder.py" beforeDir="false" afterPath="$PROJECT_DIR$/encoder_model/encoder.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/text_classifier/dataset/dataset.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/text_classifier/feedforward_attention_model/architecture.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
