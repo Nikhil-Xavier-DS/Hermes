@@ -1,0 +1,118 @@
+import tensorflow as tf
+import time
+import logging
+import numpy as np
+
+from tensorflow.keras import Model
+from tensorflow.keras.layers import Dense, Dropout, Conv1D, Embedding
+from tensorflow.keras.metrics import Accuracy
+from tensorflow.keras.optimizers import Adam
+
+
+class KernelAttentivePooling(Model):
+    def __init__(self, params):
+        super().__init__()
+        self.dropout = Dropout(params['dropout_rate'])
+        self.kernel = Dense(units=1,
+                            activation=tf.tanh,
+                            use_bias=True)
+
+    def call(self, inputs, training=False):
+        x, masks = inputs
+        x = self.dropout(x, training=training)
+        x = self.kernel(x)
+        align = tf.squeeze(x, -1)
+        padding = tf.fill(tf.shape(align), float('-inf'))
+        align = tf.where(tf.equal(masks, 0), padding, align)
+        align = tf.nn.softmax(align)
+        align = tf.expand_dims(align, -1)
+        return tf.squeeze(tf.matmul(x, align, transpose_a=True), axis=-1)
+
+
+class FeedForwardAttention(Model):
+    EPOCHS = 1
+    logger = logging.getLogger('tensorflow')
+    logger.setLevel(logging.INFO)
+
+    def __init__(self, params):
+        super().__init__()
+        self.char_embedding = Embedding(len(params['char2idx']) + 1, params['char_embed_size'])
+        self.word_embedding = tf.Variable(np.load('../data/embedding.npy'),
+                                          dtype=tf.float32,
+                                          name='pretrained_embedding',
+                                          trainable=False, )
+        self.char_cnn = Conv1D(filters=params['cnn_filters'], kernel_size=params['cnn_kernel_size'],
+                               activation=tf.nn.elu, padding='same')
+        self.embed_drop = Dropout(params['dropout_rate'])
+        self.embed_fc = Dense(params['cnn_filters'], tf.nn.elu, name='embed_fc')
+        self.word_cnn = Conv1D(filters=params['cnn_filters'], kernel_size=params['cnn_kernel_size'],
+                               activation=tf.nn.elu, padding='same')
+        self.word_drop = Dropout(params['dropout_rate'])
+        self.attentive_pooling = KernelAttentivePooling(params)
+        self.out_linear = Dense(2)
+        self.max_char_len = params['max_char_len']
+        self.char_embed_size = params['char_embed_size']
+        self.cnn_filters = params['cnn_filters']
+        self.params = params
+        self.optimizer = Adam(params['lr'])
+        self.accuracy = Accuracy()
+        self.decay_lr = tf.optimizers.schedules.ExponentialDecay(params['lr'], 1000, 0.95)
+        self.params = params
+        self.logger = logging.getLogger('tensorflow')
+        self.logger.setLevel(logging.INFO)
+
+    def call(self, inputs, training=False):
+        words, chars = inputs
+        if words.dtype != tf.int32:
+            words = tf.cast(words, tf.int32)
+        masks = tf.sign(words)
+        batch_sz = tf.shape(words)[0]
+        word_len = tf.shape(words)[1]
+        chars = self.char_embedding(chars)
+        chars = tf.reshape(chars, (batch_sz * word_len, self.max_char_len, self.char_embed_size))
+        chars = self.char_cnn(chars)
+        chars = tf.reduce_max(chars, 1)
+        chars = tf.reshape(chars, (batch_sz, word_len, self.cnn_filters))
+        words = tf.nn.embedding_lookup(self.word_embedding, words)
+        x = tf.concat((words, chars), axis=-1)
+        x = self.embed_drop(x, training=training)
+        x = self.embed_fc(x)
+        x = self.word_drop(x, training=training)
+        x = self.word_cnn(x)
+        x = self.attentive_pooling((x, masks), training=training)
+        x = self.out_linear(x)
+        return x
+
+    def fit(self, data, epochs=EPOCHS):
+        t0 = time.time()
+        step = 0
+        epoch = 1
+        while epoch <= epochs:
+            for words, chars, labels in data:
+                with tf.GradientTape() as tape:
+                    logits = self.call((words, chars), training=True)
+                    loss = tf.reduce_mean(tf.losses.categorical_crossentropy(y_true=tf.one_hot(labels, 2),
+                                                                             y_pred=logits,
+                                                                             from_logits=True,
+                                                                             label_smoothing=.2, ))
+                self.optimizer.lr.assign(self.decay_lr(step))
+                grads = tape.gradient(loss, self.trainable_variables)
+                self.optimizer.apply_gradients(zip(grads, self.trainable_variables))
+                if step % 100 == 0:
+                    self.logger.info("Step {} | Loss: {:.4f} | Spent: {:.1f} secs | LR: {:.6f}".format(
+                        step, loss.numpy().item(), time.time() - t0, self.optimizer.lr.numpy().item()))
+                    t0 = time.time()
+                step += 1
+            epoch += 1
+        return True
+
+    def evaluate(self, data):
+        self.accuracy.reset_states()
+        for words, chars, labels in data:
+            logits = self.call((words, chars), training=False)
+            y_pred = tf.argmax(logits, axis=-1)
+            self.accuracy.update_state(y_true=labels, y_pred=y_pred)
+
+        accuracy = self.accuracy.result().numpy()
+        self.logger.info("Evaluation Accuracy: {:.3f}".format(accuracy))
+        self.logger.info("Accuracy: {:.3f}".format(accuracy))
