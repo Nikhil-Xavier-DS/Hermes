@@ -139,4 +139,3 @@ if __name__ == "__main__":
 
     print("[%d / %d] words have found pre-trained values" % (count, len(word2idx)))
     np.save('../data/embedding.npy', embedding)
-    print('Saved ../data/word.npy')
