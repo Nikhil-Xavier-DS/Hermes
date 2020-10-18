@@ -13,7 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
-"""CNN based Feedforward Attention model for text classification."""
+"""Parallel LSTM (Sliced) model for text classification."""
 
 import tensorflow as tf
 import time
@@ -21,57 +21,61 @@ import logging
 import numpy as np
 
 from tensorflow.keras import Model
-from tensorflow.keras.layers import Dense, Dropout, Conv1D
+from tensorflow.keras.layers import Dense, Dropout, Bidirectional, LSTM
 from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.metrics import Accuracy
+from tensorflow.optimizers.schedules import ExponentialDecay
 
 
-class KernelAttentivePooling(Model):
-    def __init__(self, params):
-        super().__init__()
-        self.dropout = Dropout(params['dropout_rate'])
-        self.kernel = Conv1D(filters=1,
-                             kernel_size=params['kernel_size'],
-                             padding='same',
-                             activation=tf.tanh,
-                             use_bias=True)
-
-    def call(self, inputs, training=False):
-        x, masks = inputs
-        x = self.dropout(x, training=training)
-        x = self.kernel(x)
-        align = tf.squeeze(x, -1)
-        padding = tf.fill(tf.shape(align), float('-inf'))
-        align = tf.where(tf.equal(masks, 0), padding, align)
-        align = tf.nn.softmax(align)
-        align = tf.expand_dims(align, -1)
-        return tf.squeeze(tf.matmul(x, align, transpose_a=True), axis=-1)
-
-
-class FeedForwardAttention(Model):
+class ParallelLSTMTextClassifier(Model):
     EPOCHS = 1
     logger = logging.getLogger('tensorflow')
     logger.setLevel(logging.INFO)
 
-    def __init__(self, params):
+    def __init__(self, lstm_units=100, lr=1e-4, dropout_rate=0.2):
         super().__init__()
         self.embedding = tf.Variable(np.load('../data/embedding.npy'),
                                      dtype=tf.float32,
-                                     name='pretrained_embedding')
-        self.attentive_pooling = KernelAttentivePooling(params)
+                                     name='pretrained_embedding',
+                                     trainable=False)
+        self.dropout_l1 = Dropout(dropout_rate)
+        self.dropout_l2 = Dropout(dropout_rate)
+        self.dropout_l3 = Dropout(dropout_rate)
+        self.blstm_l1 = Bidirectional(LSTM(lstm_units, return_sequences=True))
+        self.blstm_l2 = Bidirectional(LSTM(lstm_units, return_sequences=True))
+        self.blstm_l3 = Bidirectional(LSTM(lstm_units, return_sequences=True))
+        self.dropout_op = Dropout(dropout_rate)
+        self.units = 2 * lstm_units
+        self.fc = Dense(units=self.units, activation='elu')
         self.out_linear = Dense(2)
-        self.optimizer = Adam(params['lr'])
-        self.accuracy = tf.keras.metrics.Accuracy()
-        self.decay_lr = tf.optimizers.schedules.ExponentialDecay(params['lr'], 1000, 0.95)
-        self.params = params
+        self.optimizer = Adam(lr)
+        self.decay_lr = ExponentialDecay(lr, 1000, 0.90)
+        self.accuracy = Accuracy()
         self.logger = logging.getLogger('tensorflow')
         self.logger.setLevel(logging.INFO)
 
     def call(self, inputs, training=False):
         if inputs.dtype != tf.int32:
             inputs = tf.cast(inputs, tf.int32)
-        masks = tf.sign(inputs)
+        batch_size = tf.shape(inputs)[0]
         x = tf.nn.embedding_lookup(self.embedding, inputs)
-        x = self.attentive_pooling((x, masks), training=training)
+        x = tf.reshape(x, (batch_size * 10 * 10, 10, self.embedding.shape[-1]))
+        x = self.dropout_l1(x, training=training)
+        x = self.blstm_l1(x)
+        x = tf.reduce_max(x, 1)
+
+        x = tf.reshape(x, (batch_size * 10, 10, self.units))
+        x = self.dropout_l2(x, training=training)
+        x = self.blstm_l2(x)
+        x = tf.reduce_max(x, 1)
+
+        x = tf.reshape(x, (batch_size, 10, self.units))
+        x = self.dropout_l3(x, training=training)
+        x = self.blstm_l3(x)
+        x = tf.reduce_max(x, 1)
+
+        x = self.dropout_op(x, training=training)
+        x = self.fc(x)
         x = self.out_linear(x)
         return x
 
@@ -85,7 +89,7 @@ class FeedForwardAttention(Model):
                     logits = self.call(texts, training=True)
                     loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(labels=labels,
                                                                                          logits=logits,
-                                                                                         label_smoothing=.2,))
+                                                                                         label_smoothing=.2, ))
                 self.optimizer.lr.assign(self.decay_lr(step))
                 grads = tape.gradient(loss, self.trainable_variables)
                 self.optimizer.apply_gradients(zip(grads, self.trainable_variables))

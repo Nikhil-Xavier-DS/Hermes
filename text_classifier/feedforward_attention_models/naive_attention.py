@@ -45,7 +45,7 @@ class KernelAttentivePooling(Model):
         return tf.squeeze(tf.matmul(x, align, transpose_a=True), axis=-1)
 
 
-class FeedForwardAttention(Model):
+class FeedForwardAttentionTextClassifier(Model):
     EPOCHS = 1
     logger = logging.getLogger('tensorflow')
     logger.setLevel(logging.INFO)

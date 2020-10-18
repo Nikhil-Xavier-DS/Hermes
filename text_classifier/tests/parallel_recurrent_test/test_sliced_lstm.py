@@ -13,12 +13,12 @@
 # limitations under the License.
 # ==============================================================================
 
-"""Test case for CNN based Feedforward Attention model for text classification."""
+"""Test case for Parallel LSTM (Sliced) model for text classification."""
 
 import tensorflow as tf
 import os
 
-from Hermes.text_classifier.feedforward_attention_model.cnn_attention_model import FeedForwardAttention
+from Hermes.text_classifier.parallel_recurrent_models.sliced_lstm import ParallelLSTMTextClassifier
 from Hermes.text_classifier.dataset.loader import dataset
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
@@ -56,7 +56,7 @@ if __name__ == "__main__":
     params['word2idx'] = word2idx
     params['idx2word'] = idx2word
     params['vocab_size'] = len(word2idx) + 1
-    model = FeedForwardAttention(params['lr'], params['dropout_rate'], params['kernel_size'])
+    model = ParallelLSTMTextClassifier(params['lr'], params['dropout_rate'])
     data = dataset(is_train=1, params=params)
 
     for x, y in data:
