@@ -18,7 +18,7 @@
 import tensorflow as tf
 import os
 
-from Hermes.text_classifier.parallel_recurrent_models.sliced_lstm import ParallelLSTMTextClassifier
+from Hermes.text_classifier.parallel_recurrent_model.sliced_lstm import ParallelLSTMTextClassifier
 from Hermes.text_classifier.dataset.loader import dataset
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"

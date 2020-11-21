@@ -1,8 +1,7 @@
 import tensorflow as tf
 import numpy as np
+from transformers import BertTokenizer
 
-from collections import Counter
-from pathlib import Path
 
 params = {
     # 'vocab_path': '../data/word.txt',
@@ -22,8 +21,12 @@ params = {
     'cnn_filters': 300,
     'cnn_kernel_size': 5,
     'init_lr': 1e-4,
-    'max_lr': 8e-4,
+    'max_lr': 8e-4
 }
+
+tokenizer = BertTokenizer.from_pretrained('bert-base-uncased',
+                                          lowercase=True,
+                                          add_special_tokens=True)
 
 
 def write_file(f_path, xs, ys):
@@ -72,6 +75,23 @@ def char_data_generator(f_path, params):
             yield words, chars, y
 
 
+def bert_data_generator(f_paths, params):
+    for f_path in f_paths:
+        with open(f_path) as f:
+            print('Reading', f_path)
+            for line in f:
+                line = line.rstrip()
+                label, text = line.split('\t')
+                text = ['[CLS]'] + tokenizer.tokenize(text) + ['[SEP]']
+                if len(text) > params['max_len']:
+                    len_by_2 = params['max_len'] // 2
+                    text = text[:len_by_2] + text[-len_by_2:]
+                seg = [0] * len(text)
+                text = tokenizer.convert_tokens_to_ids(text)
+                y = int(label)
+                yield text, seg, y
+
+
 def dataset(is_train, params):
     if is_train:
         data = tf.data.Dataset.from_generator(lambda: data_generator(params['train_path'], params),
@@ -104,6 +124,24 @@ def char_dataset(is_train, params):
                                               output_types=(tf.int32, tf.int32, tf.int32))
         data = data.shuffle(params['num_samples'])
         data = data.padded_batch(params['batch_size'], ([None], [None, params['max_char_len']], ()), (0, 0, -1))
+        data = data.prefetch(tf.data.experimental.AUTOTUNE)
+    return data
+
+
+def bert_dataset(is_train, params):
+    if is_train:
+        data = tf.data.Dataset.from_generator(lambda: data_generator(params['train_path'], params),
+                                              output_shapes=([None], ()),
+                                              output_types=(tf.int32, tf.int32))
+        data = data.shuffle(params['num_samples'])
+        data = data.padded_batch(params['batch_size'], ([None], ()), (0, -1))
+        data = data.prefetch(tf.data.experimental.AUTOTUNE)
+    else:
+        data = tf.data.Dataset.from_generator(lambda: data_generator(params['test_path'], params),
+                                              output_shapes=([None], ()),
+                                              output_types=(tf.int32, tf.int32))
+        data = data.shuffle(params['num_samples'])
+        data = data.padded_batch(params['batch_size'], ([None], ()), (0, -1))
         data = data.prefetch(tf.data.experimental.AUTOTUNE)
     return data
 

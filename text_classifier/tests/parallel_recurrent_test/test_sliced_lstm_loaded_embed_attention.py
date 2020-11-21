@@ -18,7 +18,7 @@
 import tensorflow as tf
 import os
 
-from Hermes.text_classifier.parallel_recurrent_models.sliced_lstm_loaded_embed_attention import \
+from Hermes.text_classifier.parallel_recurrent_model.sliced_lstm_loaded_embed_attention import \
     ParallelLSTMTextClassifier
 from Hermes.text_classifier.dataset.loader import char_dataset as dataset
 

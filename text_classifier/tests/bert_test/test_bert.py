@@ -13,13 +13,13 @@
 # limitations under the License.
 # ==============================================================================
 
-"""Test case for Parallel LSTM (Sliced) Attention model for text classification."""
+"""Test case for BERT (Bidirectional Encoder Representations from Transformers) model for text classification."""
 
 import tensorflow as tf
 import os
-
-from Hermes.text_classifier.parallel_recurrent_model.sliced_lstm_loaded_embed import ParallelLSTMTextClassifier
+from Hermes.text_classifier.bert_model.bert import BertClassifier
 from Hermes.text_classifier.dataset.loader import dataset
+from tensorflow.keras.optimizers import Adam
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 print("TensorFlow Version", tf.__version__)
@@ -47,18 +47,7 @@ params = {
 }
 
 if __name__ == "__main__":
-    _word2idx = tf.keras.datasets.imdb.get_word_index()
-    word2idx = {w: i+3 for w, i in _word2idx.items()}
-    word2idx['<pad>'] = 0
-    word2idx['<start>'] = 1
-    word2idx['<unk>'] = 2
-    idx2word = {i: w for w, i in word2idx.items()}
-    params['word2idx'] = word2idx
-    params['idx2word'] = idx2word
-    params['vocab_size'] = len(word2idx) + 1
-    model = ParallelLSTMTextClassifier(params['lstm_units'], params['char_vocab'], params['char_embed_size'],
-                                       params['cnn_filters'], params['cnn_kernel_size'], params['dropout_rate'],
-                                       params['max_char_len'], params['lr'])
+    model = BertClassifier(params['dropout_rate'])
     data = dataset(is_train=1, params=params)
 
     for x, y in data:
@@ -72,6 +61,7 @@ if __name__ == "__main__":
         break
 
     print("Fitting model")
+    model.compile(optimizer=Adam(params['lr']), loss=tf.keras.losses.CategoricalCrossentropy(label_smoothing=.2))
     model.fit(data, epochs=2)
     model.save("feed_forward_model.h5")
 

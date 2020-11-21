@@ -113,6 +113,7 @@ class ParallelLSTMTextClassifier(Model):
                                                                                          label_smoothing=.2, ))
                 self.optimizer.lr.assign(self.decay_lr(step))
                 grads = tape.gradient(loss, self.trainable_variables)
+                grads, _ = tf.clip_by_global_norm(grads, 5.)
                 self.optimizer.apply_gradients(zip(grads, self.trainable_variables))
                 if step % 100 == 0:
                     self.logger.info("Step {} | Loss: {:.4f} | Spent: {:.1f} secs | LR: {:.6f}".format(
