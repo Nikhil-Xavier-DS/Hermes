@@ -13,32 +13,32 @@
 # limitations under the License.
 # ==============================================================================
 
-"""BERT (Bidirectional Encoder Representations from Transformers) model for text classification."""
+"""ALBERT (A Lite Bidirectional Encoder Representations from Transformers) model for text classification."""
 
 import tensorflow as tf
 import time
 import logging
 
 from tensorflow.keras import Model
-from transformers import TFBertModel
+from transformers import TFAlbertModel
 
 
-class BertClassifier(Model):
+class AlbertClassifier(Model):
     EPOCHS = 1
     logger = logging.getLogger('tensorflow')
     logger.setLevel(logging.INFO)
 
     def __init__(self, dropout=0.1):
         super().__init__()
-        self.bert = TFBertModel.from_pretrained('bert-base-uncased',
-                                                trainable=True)
+        self.albert = TFAlbertModel.from_pretrained('bert-base-uncased',
+                                                    trainable=True)
         self.drop = tf.keras.layers.Dropout(dropout)
         self.fc = tf.keras.layers.Dense(300, tf.nn.silu)
         self.out = tf.keras.layers.Dense(2)
 
-    def call(self, bert_inp, training):
-        bert_inp = [tf.cast(inp, tf.int32) for inp in bert_inp]
-        x = self.bert(bert_inp, training=training)[1]
+    def call(self, albert_inp, training):
+        albert_inp = [tf.cast(inp, tf.int32) for inp in albert_inp]
+        x = self.albert(albert_inp, training=training)[1]
         x = self.drop(x, training=training)
         x = self.fc(x)
         x = self.drop(x, training=training)

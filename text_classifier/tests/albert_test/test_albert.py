@@ -13,12 +13,12 @@
 # limitations under the License.
 # ==============================================================================
 
-"""Test case for BERT (Bidirectional Encoder Representations from Transformers) model for text classification."""
+"""Test case for ALBERT (A Lite Bidirectional Encoder Representations from Transformers) model for text classification."""
 
 import tensorflow as tf
 import os
-from Hermes.text_classifier.bert_model.bert import BertClassifier
-from Hermes.text_classifier.dataset.loader import bert_dataset
+from Hermes.text_classifier.bert_model.bert import AlbertClassifier
+from Hermes.text_classifier.dataset.loader import albert_dataset
 from tensorflow.keras.optimizers import Adam
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
@@ -47,8 +47,8 @@ params = {
 }
 
 if __name__ == "__main__":
-    model = BertClassifier(params['dropout_rate'])
-    data = bert_dataset(is_train=1, params=params)
+    model = AlbertClassifier(params['dropout_rate'])
+    data = albert_dataset(is_train=1, params=params)
 
     for x, y in data:
         print("Input shape: {}, {}".format(len(x), len(x[0])))
@@ -66,7 +66,7 @@ if __name__ == "__main__":
     model.save("feed_forward_model.h5")
 
     print("Evaluate model")
-    model = tf.keras.models.load_model("bert_model.h5")
+    model = tf.keras.models.load_model("albert_model.h5")
 
-    data = bert_dataset(is_train=0, params=params)
+    data = albert_dataset(is_train=0, params=params)
     model.evaluate(data)

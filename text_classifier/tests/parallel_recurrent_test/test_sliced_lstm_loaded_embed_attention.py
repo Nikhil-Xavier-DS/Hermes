@@ -50,6 +50,7 @@ if __name__ == "__main__":
     model = ParallelLSTMTextClassifier(params['lstm_units'], params['char_vocab'], params['char_embed_size'],
                                        params['cnn_filters'], params['cnn_kernel_size'], params['dropout_rate'],
                                        params['max_char_len'], params['lr'])
+    data = dataset(is_train=1, params=params)
 
     for words, chars, labels in data:
         print("Input word shape: {}, {}".format(len(words), len(words[0])))
@@ -67,7 +68,7 @@ if __name__ == "__main__":
     model.save("feed_forward_model.h5")
 
     print("Evaluate model")
-    model = tf.keras.models.load_model("feed_forward_model.h5")
+    model = tf.keras.models.load_model("sliced_lstm_attention_model.h5")
 
     data = dataset(is_train=0, params=params)
     model.evaluate(data)

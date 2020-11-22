@@ -17,8 +17,8 @@
 
 import tensorflow as tf
 import os
-from Hermes.text_classifier.bert_model.bert import BertClassifier
-from Hermes.text_classifier.dataset.loader import bert_dataset
+from Hermes.text_classifier.bert_model.bert import XLNetClassifier
+from Hermes.text_classifier.dataset.loader import xlnet_dataset
 from tensorflow.keras.optimizers import Adam
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
@@ -47,8 +47,8 @@ params = {
 }
 
 if __name__ == "__main__":
-    model = BertClassifier(params['dropout_rate'])
-    data = bert_dataset(is_train=1, params=params)
+    model = XLNetClassifier(params['dropout_rate'])
+    data = xlnet_dataset(is_train=1, params=params)
 
     for x, y in data:
         print("Input shape: {}, {}".format(len(x), len(x[0])))
@@ -66,7 +66,7 @@ if __name__ == "__main__":
     model.save("feed_forward_model.h5")
 
     print("Evaluate model")
-    model = tf.keras.models.load_model("bert_model.h5")
+    model = tf.keras.models.load_model("xlnet_model.h5")
 
-    data = bert_dataset(is_train=0, params=params)
+    data = xlnet_dataset(is_train=0, params=params)
     model.evaluate(data)

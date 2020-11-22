@@ -76,7 +76,7 @@ if __name__ == "__main__":
     model.save("feed_forward_model.h5")
 
     print("Evaluate model")
-    model = tf.keras.models.load_model("feed_forward_model.h5")
+    model = tf.keras.models.load_model("sliced_loaded_lstm_model.h5")
 
     data = dataset(is_train=0, params=params)
     model.evaluate(data)
