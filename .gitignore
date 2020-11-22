@@ -3,3 +3,5 @@ Hermes/text_classifier/data/
 **/__pycache__
 **/.gitignore
 **/.idea
+Hermes/.gitignore
+Hermes/.idea
