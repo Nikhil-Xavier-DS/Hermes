@@ -10,7 +10,7 @@ params = {
     'num_samples': 25000,
     'num_labels': 2,
     'batch_size': 32,
-    'max_len': 1000,
+    'max_len': 500,
     'dropout_rate': 0.2,
     'kernel_size': 5,
     'num_patience': 3,
