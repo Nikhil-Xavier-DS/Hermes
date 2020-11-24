@@ -1,5 +1,6 @@
 **/data/
-Hermes/text_classifier/data/
+Hermes/natural_language_classifier/data/
+Hermes/natural_language_inference/data/
 **/__pycache__
 **/.gitignore
 **/.idea
