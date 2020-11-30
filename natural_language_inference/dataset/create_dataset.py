@@ -46,8 +46,6 @@ def norm_weight(inp, out, scale=0.01):
 
 
 if __name__ == "__main__":
-    # word2idx = {w: i + 3 for w, i in _word2idx.items()}
-
     write_text('../data/snli_data/snli_1.0_train.txt', '../data/train.txt')
     write_text('../data/snli_data/snli_1.0_test.txt', '../data/test.txt')
 
