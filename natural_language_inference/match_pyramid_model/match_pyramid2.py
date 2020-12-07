@@ -25,27 +25,6 @@ from tensorflow.keras.layers import Dense, Dropout
 from tensorflow.keras.optimizers import Adam
 
 
-class KernelAttentivePooling(Model):
-    def __init__(self, dropout_rate):
-        super().__init__()
-        self.dropout = Dropout(dropout_rate)
-        self.kernel = Dense(units=1,
-                            activation="tanh",
-                            use_bias=True)
-
-    def call(self, inputs, training=False, **args):
-        super().call(**args)
-        x, masks = inputs
-        x1 = self.dropout(x, training=training)
-        x1 = self.kernel(x1)
-        align = tf.squeeze(x1, -1)
-        padding = tf.fill(tf.shape(align), float('-inf'))
-        align = tf.where(tf.equal(masks, 0), padding, align)
-        align = tf.nn.softmax(align)
-        align = tf.expand_dims(align, -1)
-        return tf.squeeze(tf.matmul(x, align, transpose_a=True), axis=-1)
-
-
 class FCBlock(Model):
     def __init__(self, dropout_rate=0.2, units=300):
         super().__init__()
@@ -64,27 +43,7 @@ class FCBlock(Model):
         return x
 
 
-class SoftAlignAttention(Model):
-    def __init__(self):
-        super().__init__()
-
-    def call(self, x1, x2, mask1, mask2, **args):
-        super().call(**args)
-        align12 = tf.matmul(x1, x2, transpose_b=True)
-        align21 = tf.transpose(align12, [0, 2, 1])
-        x1_coef = self.masked_attention(x2, align12, mask2, tf.shape(x1)[1])
-        x2_coef = self.masked_attention(x1, align21, mask1, tf.shape(x2)[1])
-        return x1_coef, x2_coef
-
-    def masked_attention(self, x, align, mask, seq_len):
-        pad = tf.fill(tf.shape(align), float('-inf'))
-        mask = tf.tile(tf.expand_dims(mask, 1), [1, seq_len, 1])
-        align = tf.where(tf.equal(mask, 0), pad, align)
-        align = tf.nn.softmax(align)
-        return tf.matmul(align, x)
-
-
-class DecomposableAttentionModel(Model):
+class MatchPyramidModel(Model):
     EPOCHS = 1
     logger = logging.getLogger('tensorflow')
     logger.setLevel(logging.INFO)
@@ -154,9 +113,9 @@ class DecomposableAttentionModel(Model):
         step = 0
         epoch = 1
         while epoch <= epochs:
-            for ((text1, text2), labels) in data:
+            for texts, labels in data:
                 with tf.GradientTape() as tape:
-                    logits = self((text1, text2), training=True)
+                    logits = self.call(texts, training=True)
                     loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(labels=labels,
                                                                                          logits=logits,
                                                                                          label_smoothing=.2, ))
@@ -174,8 +133,8 @@ class DecomposableAttentionModel(Model):
 
     def evaluate(self, data):
         self.accuracy.reset_states()
-        for ((text1, text2), labels)  in data:
-            logits = self((text1, text2), training=False)
+        for texts, labels in data:
+            logits = self.call(texts, training=False)
             y_pred = tf.argmax(logits, axis=-1)
             self.accuracy.update_state(y_true=labels, y_pred=y_pred)
 

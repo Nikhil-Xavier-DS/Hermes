@@ -8,7 +8,7 @@ params = {
     'train_path': '../data/train.txt',
     'test_path': '../data/test.txt',
     'num_samples': 25000,
-    'num_labels': 2,
+    'num_labels': 3,
     'batch_size': 32,
     'max_len': 500,
     'dropout_rate': 0.2,

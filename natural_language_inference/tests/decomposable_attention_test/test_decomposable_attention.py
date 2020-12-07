@@ -13,13 +13,13 @@
 # limitations under the License.
 # ==============================================================================
 
-"""Test case for ALBERT (A Lite Bidirectional Encoder Representations from Transformers) model for text classification."""
+"""Test case for Decomposable Attention Model for Natural Language Inference"""
 
 import tensorflow as tf
 import os
-from Hermes.text_classifier.bert_model.bert import AlbertClassifier
-from Hermes.text_classifier.dataset.loader import albert_dataset
-from tensorflow.keras.optimizers import Adam
+
+from Hermes.natural_language_inference.decomposable_attention_model.decomposable_attention import DecomposableAttentionTextClassifier
+from Hermes.natural_language_inference.dataset.loader import dataset
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 print("TensorFlow Version", tf.__version__)
@@ -30,7 +30,8 @@ params = {
     'train_path': '../data/train.txt',
     'test_path': '../data/test.txt',
     'num_samples': 25000,
-    'num_labels': 2,
+    'units': 300,
+    'num_labels': 3,
     'batch_size': 32,
     'max_len': 1000,
     'dropout_rate': 0.2,
@@ -47,8 +48,17 @@ params = {
 }
 
 if __name__ == "__main__":
-    model = AlbertClassifier(params['dropout_rate'])
-    data = albert_dataset(is_train=1, params=params)
+    _word2idx = tf.keras.datasets.imdb.get_word_index()
+    word2idx = {w: i+3 for w, i in _word2idx.items()}
+    word2idx['<pad>'] = 0
+    word2idx['<start>'] = 1
+    word2idx['<unk>'] = 2
+    idx2word = {i: w for w, i in word2idx.items()}
+    params['word2idx'] = word2idx
+    params['idx2word'] = idx2word
+    params['vocab_size'] = len(word2idx) + 1
+    model = DecomposableAttentionTextClassifier(params['lr'], params['dropout_rate'], params['units'])
+    data = dataset(is_train=1, params=params)
 
     for x, y in data:
         print("Input shape: {}, {}".format(len(x), len(x[0])))
@@ -61,12 +71,11 @@ if __name__ == "__main__":
         break
 
     print("Fitting model")
-    model.compile(optimizer=Adam(params['lr']), loss=tf.keras.losses.CategoricalCrossentropy(label_smoothing=.2))
     model.fit(data, epochs=2)
-    model.save("feed_forward_model.h5")
+    model.save("decomposable_attention_model.h5")
 
     print("Evaluate model")
-    model = tf.keras.models.load_model("albert_model.h5")
+    model = tf.keras.models.load_model("decomposable_attention_model.h5")
 
-    data = albert_dataset(is_train=0, params=params)
+    data = dataset(is_train=0, params=params)
     model.evaluate(data)
