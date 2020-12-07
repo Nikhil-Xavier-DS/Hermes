@@ -18,7 +18,7 @@
 import tensorflow as tf
 import os
 
-from Hermes.natural_language_inference.decomposable_attention_model.decomposable_attention import DecomposableAttentionTextClassifier
+from Hermes.natural_language_inference.decomposable_attention_model.decomposable_attention import DecomposableAttentionModel
 from Hermes.natural_language_inference.dataset.loader import dataset
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     params['word2idx'] = word2idx
     params['idx2word'] = idx2word
     params['vocab_size'] = len(word2idx) + 1
-    model = DecomposableAttentionTextClassifier(params['lr'], params['dropout_rate'], params['units'])
+    model = DecomposableAttentionModel(params['lr'], params['dropout_rate'], params['units'])
     data = dataset(is_train=1, params=params)
 
     for x, y in data:

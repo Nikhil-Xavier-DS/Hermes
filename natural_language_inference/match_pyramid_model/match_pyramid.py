@@ -13,7 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
-"""A Decomposable Attention Model for Natural Language Inference"""
+"""Text Matching as Image Recognition using Match Pyramid for Natural Language Inference"""
 
 import tensorflow as tf
 import time
@@ -21,29 +21,8 @@ import logging
 import numpy as np
 
 from tensorflow.keras import Model
-from tensorflow.keras.layers import Dense, Dropout
+from tensorflow.keras.layers import Dense, Dropout, LSTM, Bidirectional, Conv2D, Flatten
 from tensorflow.keras.optimizers import Adam
-
-
-class KernelAttentivePooling(Model):
-    def __init__(self, dropout_rate):
-        super().__init__()
-        self.dropout = Dropout(dropout_rate)
-        self.kernel = Dense(units=1,
-                            activation="tanh",
-                            use_bias=True)
-
-    def call(self, inputs, training=False, **args):
-        super().call(**args)
-        x, masks = inputs
-        x1 = self.dropout(x, training=training)
-        x1 = self.kernel(x1)
-        align = tf.squeeze(x1, -1)
-        padding = tf.fill(tf.shape(align), float('-inf'))
-        align = tf.where(tf.equal(masks, 0), padding, align)
-        align = tf.nn.softmax(align)
-        align = tf.expand_dims(align, -1)
-        return tf.squeeze(tf.matmul(x, align, transpose_a=True), axis=-1)
 
 
 class FCBlock(Model):
@@ -64,43 +43,35 @@ class FCBlock(Model):
         return x
 
 
-class SoftAlignAttention(Model):
-    def __init__(self):
-        super().__init__()
-
-    def call(self, x1, x2, mask1, mask2, **args):
-        super().call(**args)
-        align12 = tf.matmul(x1, x2, transpose_b=True)
-        align21 = tf.transpose(align12, [0, 2, 1])
-        x1_coef = self.masked_attention(x2, align12, mask2, tf.shape(x1)[1])
-        x2_coef = self.masked_attention(x1, align21, mask1, tf.shape(x2)[1])
-        return x1_coef, x2_coef
-
-    def masked_attention(self, x, align, mask, seq_len):
-        pad = tf.fill(tf.shape(align), float('-inf'))
-        mask = tf.tile(tf.expand_dims(mask, 1), [1, seq_len, 1])
-        align = tf.where(tf.equal(mask, 0), pad, align)
-        align = tf.nn.softmax(align)
-        return tf.matmul(align, x)
-
-
-class DecomposableAttentionModel(Model):
+class MatchPyramidModel(Model):
     EPOCHS = 1
     logger = logging.getLogger('tensorflow')
     logger.setLevel(logging.INFO)
 
-    def __init__(self, lr=1e-4, dropout_rate=0.2, units=300):
+    def __init__(self, lr=1e-4, dropout_rate=0.2, units=300, max_len1=16, max_len2=12):
         super().__init__()
         self.embedding = tf.Variable(np.load('../data/embedding.npy'),
                                      dtype=tf.float32,
                                      name='pretrained_embedding',
                                      trainable=False)
-        self.attentive_pooling = KernelAttentivePooling(dropout_rate)
-        self.attend_transform = FCBlock(dropout_rate, units)
-        self.compare_transform = FCBlock(dropout_rate, units)
-        self.aggregate_transform = FCBlock(dropout_rate, units)
-        self.soft_align_attention = SoftAlignAttention()
+        self.inp_dropout = Dropout(rate=dropout_rate)
+        self.encoder = Bidirectional(LSTM(units=units, return_sequences=True))
+        self.conv_1 = Conv2D(filters=32, kernel_size=7, activation=tf.nn.elu, padding='same')
+        self.conv_2 = Conv2D(filters=64, kernel_size=5, activation=tf.nn.elu, padding='same')
+        self.conv_3 = Conv2D(filters=128, kernel_size=3, activation=tf.nn.elu, padding='same')
+        self.W_0 = Dense(2*units)
+        self.W_1_1 = Dense(units)
+        self.W_1_2 = Dense(units)
+        self.v_1 = Dense(1)
+        self.W_2 = Dense(units)
+        self.v_2 = Dense(1)
+        self.W_3 = Dense(units)
+        self.v_3 = Dense(1)
+        self.flatten = Flatten()
+        self.out_hidden = FCBlock(dropout_rate, units)
         self.out_linear = Dense(3)
+        self.max_len1 = max_len1
+        self.max_len2 = max_len2
         self.optimizer = Adam(lr)
         self.accuracy = tf.keras.metrics.Accuracy()
         self.decay_lr = tf.optimizers.schedules.ExponentialDecay(lr, 1000, 0.95)
@@ -110,43 +81,72 @@ class DecomposableAttentionModel(Model):
     def call(self, inputs, training=False, **args):
         super().call(**args)
         x1, x2 = inputs
+
         if x1.dtype != tf.int32:
             x1 = tf.cast(x1, tf.int32)
         if x2.dtype != tf.int32:
             x2 = tf.cast(x2, tf.int32)
+
+        batch_sz = tf.shape(x1)[0]
+        len1 = x1.shape[1]
+        len2 = x2.shape[1]
+        stride1 = len1 // self.max_len1
+        stride2 = len2 // self.max_len2
+
+        if len1 // stride1 != self.max_len1:
+            remainder = (stride1+1)*self.max_len1 - len1
+            zeros = tf.zeros([batch_sz, remainder], tf.int32)
+            x1 = tf.concat([x1, zeros], 1)
+            len1 = x1.shape[1]
+            stride1 = len1 // self.max_len1
+
+        if len2 // stride2 != self.max_len2:
+            remainder = (stride1 + 1) * self.max_len1 - len1
+            zeros = tf.zeros([batch_sz, remainder], tf.int32)
+            x2 = tf.concat([x2, zeros], 1)
+            len2 = x2.shape[1]
+            stride2 = len2 // self.max_len2
+
         mask1 = tf.sign(x1)
         mask2 = tf.sign(x2)
         x1 = tf.nn.embedding_lookup(self.embedding, x1)
         x2 = tf.nn.embedding_lookup(self.embedding, x2)
-        x1_coef, x2_coef = self.attend(x1, x2, mask1, mask2, training)
-        x1 = self.compare(x1, x1_coef, training)
-        x2 = self.compare(x2, x2_coef, training)
-        x = self.aggregate(x1, x2, mask1, mask2, training)
+        x1 = self.inp_dropout(x1, training=training)
+        x2 = self.inp_dropout(x2, training=training)
+        x1 = self.encoder(x1)
+        x2 = self.encoder(x2)
+        x = []
+
+        # feature map 1
+        a = tf.matmul(x1, self.W_0(x2), transpose_b=True)
+        x.append(tf.expand_dims(a, -1))
+
+        # feature map 2
+        a1 = tf.expand_dims(self.W_1_1(x1), 2)
+        a2 = tf.expand_dims(self.W_1_2(x2), 1)
+        x.append(self.v_1(tf.tanh(a1 + a2)))
+
+        # feature map 3
+        a1 = tf.expand_dims(x1, 2)
+        a2 = tf.expand_dims(x2, 1)
+        x.append(self.v_2(tf.tanh(self.W_2(tf.abs(a1 - a2)))))
+
+        # feature map 4
+        a1 = tf.expand_dims(x1, 2)
+        a2 = tf.expand_dims(x2, 1)
+        x.append(self.v_3(tf.tanh(self.W_3(a1 * a2))))
+
+        x = tf.concat(x, -1)
+        x = self.conv_1(x)
+        x = tf.nn.max_pool(input=x, ksize=[1, stride1, stride2, 1], stride=[1, stride1, stride2, 1], padding='VALID')
+        x = self.conv_2(x)
+        x = tf.nn.max_pool(input=x, ksize=[1, 2, 2, 1], stride=[1, 2, 2, 1], padding='VALID')
+        x = self.conv_3(x)
+        x = tf.nn.max_pool(input=x, ksize=[1, 2, 2, 1], stride=[1, 2, 2, 1], padding='VALID')
+
+        x = self.flatten(x)
+        x = self.out_hidden(x, training=training)
         x = self.out_linear(x)
-        return x
-
-    def attend(self, x1, x2, mask1, mask2, training):
-        x1 = self.attend_transform(x1, training=training)
-        x2 = self.attend_transform(x2, training=training)
-        return self.soft_align_attention(x1, x2, mask1, mask2)
-
-    def compare(self, x, x_coef, training):
-        def func(x, x_coef):
-            return tf.concat((x,
-                              x_coef,
-                              (x - x_coef)), -1)
-
-        x = func(x, x_coef)
-        x = self.compare_transform(x, training=training)
-        return x
-
-    def aggregate(self, x1, x2, mask1, mask2, training):
-        features = [tf.reduce_max(x1, axis=1),
-                    tf.reduce_max(x2, axis=1),
-                    self.attentive_pooling((x1, mask1), training),
-                    self.attentive_pooling((x2, mask2), training)]
-        x = tf.concat(features, axis=-1)
-        x = self.aggregate_transform(x, training)
         return x
 
     def fit(self, data, epochs=EPOCHS):
@@ -154,9 +154,9 @@ class DecomposableAttentionModel(Model):
         step = 0
         epoch = 1
         while epoch <= epochs:
-            for ((text1, text2), labels) in data:
+            for texts, labels in data:
                 with tf.GradientTape() as tape:
-                    logits = self((text1, text2), training=True)
+                    logits = self.call(texts, training=True)
                     loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(labels=labels,
                                                                                          logits=logits,
                                                                                          label_smoothing=.2, ))
@@ -174,8 +174,8 @@ class DecomposableAttentionModel(Model):
 
     def evaluate(self, data):
         self.accuracy.reset_states()
-        for ((text1, text2), labels)  in data:
-            logits = self((text1, text2), training=False)
+        for texts, labels in data:
+            logits = self.call(texts, training=False)
             y_pred = tf.argmax(logits, axis=-1)
             self.accuracy.update_state(y_true=labels, y_pred=y_pred)
 
