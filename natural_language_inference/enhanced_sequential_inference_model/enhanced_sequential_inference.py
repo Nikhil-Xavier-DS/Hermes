@@ -13,7 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
-"""A Decomposable Attention Model for Natural Language Inference"""
+"""Enhanced Sequential Inference Model for Natural Language Inference"""
 
 import tensorflow as tf
 import time
@@ -21,7 +21,7 @@ import logging
 import numpy as np
 
 from tensorflow.keras import Model
-from tensorflow.keras.layers import Dense, Dropout
+from tensorflow.keras.layers import Dense, Dropout, LSTM, Bidirectional
 from tensorflow.keras.optimizers import Adam
 
 
@@ -84,7 +84,7 @@ class SoftAlignAttention(Model):
         return tf.matmul(align, x)
 
 
-class DecomposableAttentionModel(Model):
+class ESIMModel(Model):
     EPOCHS = 1
     logger = logging.getLogger('tensorflow')
     logger.setLevel(logging.INFO)
@@ -95,11 +95,18 @@ class DecomposableAttentionModel(Model):
                                      dtype=tf.float32,
                                      name='pretrained_embedding',
                                      trainable=False)
+        self.inp_dropout = Dropout(rate=dropout_rate)
+        self.feature_dropout = Dropout(rate=dropout_rate)
+        self.inference_dropout = Dropout(rate=dropout_rate)
+        self.input_encoder = Bidirectional(LSTM(units=units, return_sequences=True))
+        self.inference_encoder = Bidirectional(LSTM(units=units, return_sequences=True))
+        self.feature_fc = Dense(units=units, activation='elu')
         self.attentive_pooling = KernelAttentivePooling(dropout_rate)
-        self.attend_transform = FCBlock(dropout_rate, units)
-        self.compare_transform = FCBlock(dropout_rate, units)
-        self.aggregate_transform = FCBlock(dropout_rate, units)
         self.soft_align_attention = SoftAlignAttention()
+        self.fc1_dropout = Dropout(dropout_rate)
+        self.fc1 = Dense(units=units, activation='elu')
+        self.fc2_dropout = Dropout(dropout_rate)
+        self.fc2 = Dense(units=units, activation='elu')
         self.out_linear = Dense(3)
         self.optimizer = Adam(lr)
         self.accuracy = tf.keras.metrics.Accuracy()
@@ -107,8 +114,7 @@ class DecomposableAttentionModel(Model):
         self.logger = logging.getLogger('tensorflow')
         self.logger.setLevel(logging.INFO)
 
-    def call(self, inputs, training=False, **args):
-        super().call(**args)
+    def call(self, inputs, training=False):
         x1, x2 = inputs
         if x1.dtype != tf.int32:
             x1 = tf.cast(x1, tf.int32)
@@ -118,36 +124,37 @@ class DecomposableAttentionModel(Model):
         mask2 = tf.sign(x2)
         x1 = tf.nn.embedding_lookup(self.embedding, x1)
         x2 = tf.nn.embedding_lookup(self.embedding, x2)
-        x1_coef, x2_coef = self.attend(x1, x2, mask1, mask2, training)
-        x1 = self.compare(x1, x1_coef, training)
-        x2 = self.compare(x2, x2_coef, training)
-        x = self.aggregate(x1, x2, mask1, mask2, training)
-        x = self.out_linear(x)
-        return x
+        x1 = self.inp_dropout(x1, training=training)
+        x2 = self.inp_dropout(x2, training=training)
+        x1 = self.input_encoder(x1)
+        x2 = self.input_encoder(x2)
+        x1_, x2_ = self.soft_align_attention(x1, x2, mask1, mask2)
 
-    def attend(self, x1, x2, mask1, mask2, training):
-        x1 = self.attend_transform(x1, training=training)
-        x2 = self.attend_transform(x2, training=training)
-        return self.soft_align_attention(x1, x2, mask1, mask2)
-
-    def compare(self, x, x_coef, training):
         def func(x, x_coef):
             return tf.concat((x,
                               x_coef,
                               (x - x_coef),
                               (x * x_coef)), -1)
-
-        x = func(x, x_coef)
-        x = self.compare_transform(x, training=training)
-        return x
-
-    def aggregate(self, x1, x2, mask1, mask2, training):
+        x1 = func(x1, x1_)
+        x2 = func(x2, x2_)
+        x1 = self.feature_dropout(x1, training=training)
+        x2 = self.feature_dropout(x2, training=training)
+        x1 = self.feature_fc(x1)
+        x2 = self.feature_fc(x2)
+        x1 = self.inference_dropout(x1, training=training)
+        x2 = self.inference_dropout(x2, training=training)
+        x1 = self.inference_encoder(x1)
+        x2 = self.inference_encoder(x2)
         features = [tf.reduce_max(x1, axis=1),
                     tf.reduce_max(x2, axis=1),
                     self.attentive_pooling((x1, mask1), training),
                     self.attentive_pooling((x2, mask2), training)]
         x = tf.concat(features, axis=-1)
-        x = self.aggregate_transform(x, training)
+        x = self.fc1_dropout(x, training=training)
+        x = self.fc1(x)
+        x = self.fc2_dropout(x, training=training)
+        x = self.fc2(x)
+        x = self.out_linear(x)
         return x
 
     def fit(self, data, epochs=EPOCHS):
@@ -155,9 +162,9 @@ class DecomposableAttentionModel(Model):
         step = 0
         epoch = 1
         while epoch <= epochs:
-            for ((text1, text2), labels) in data:
+            for texts, labels in data:
                 with tf.GradientTape() as tape:
-                    logits = self((text1, text2), training=True)
+                    logits = self(texts, training=True)
                     loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(labels=labels,
                                                                                          logits=logits,
                                                                                          label_smoothing=.2, ))
@@ -175,8 +182,8 @@ class DecomposableAttentionModel(Model):
 
     def evaluate(self, data):
         self.accuracy.reset_states()
-        for ((text1, text2), labels)  in data:
-            logits = self((text1, text2), training=False)
+        for texts, labels in data:
+            logits = self.call(texts, training=False)
             y_pred = tf.argmax(logits, axis=-1)
             self.accuracy.update_state(y_true=labels, y_pred=y_pred)
 

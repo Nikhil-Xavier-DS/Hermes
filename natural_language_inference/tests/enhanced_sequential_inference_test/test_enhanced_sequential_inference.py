@@ -13,12 +13,12 @@
 # limitations under the License.
 # ==============================================================================
 
-"""Test case for Decomposable Attention Model for Natural Language Inference"""
+"""Test case for Enhanced Sequential Inference Model for Natural Language Inference"""
 
 import tensorflow as tf
 import os
 
-from Hermes.natural_language_inference.decomposable_attention_model.decomposable_attention import DecomposableAttentionModel
+from Hermes.natural_language_inference.enhanced_sequential_inference_model.enhansed_sequential_inference import ESIM
 from Hermes.natural_language_inference.dataset.loader import dataset
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
@@ -38,12 +38,6 @@ params = {
     'num_patience': 3,
     'lr': 1e-4,
     'max_word_len': 1000,
-    'max_char_len': 10,
-    'char_embed_size': 100,
-    'cnn_filters': 300,
-    'cnn_kernel_size': 5,
-    'init_lr': 1e-4,
-    'max_lr': 8e-4,
 }
 
 if __name__ == "__main__":
@@ -56,7 +50,7 @@ if __name__ == "__main__":
     params['word2idx'] = word2idx
     params['idx2word'] = idx2word
     params['vocab_size'] = len(word2idx) + 1
-    model = DecomposableAttentionModel(params['lr'], params['dropout_rate'], params['units'])
+    model = ESIM(params['lr'], params['dropout_rate'], params['units'])
     data = dataset(is_train=1, params=params)
 
     for x, y in data:
@@ -71,10 +65,10 @@ if __name__ == "__main__":
 
     print("Fitting model")
     model.fit(data, epochs=2)
-    model.save("decomposable_attention_model.h5")
+    model.save("enhanced_sequential_inference_model.h5")
 
     print("Evaluate model")
-    model = tf.keras.models.load_model("decomposable_attention_model.h5")
+    model = tf.keras.models.load_model("enhanced_sequential_inference_model.h5")
 
     data = dataset(is_train=0, params=params)
     model.evaluate(data)
