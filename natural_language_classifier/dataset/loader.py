@@ -193,17 +193,17 @@ def char_dataset(is_train, params):
 def bert_dataset(is_train, params):
     if is_train:
         data = tf.data.Dataset.from_generator(lambda: bert_data_generator(params['train_path'], params),
-                                              output_shapes=([None], ()),
-                                              output_types=(tf.int32, tf.int32))
+                                              output_shapes=([None], [None], ()),
+                                              output_types=(tf.int32, tf.int32, tf.int32))
         data = data.shuffle(params['num_samples'])
-        data = data.padded_batch(params['batch_size'], ([None], ()), (0, -1))
+        data = data.padded_batch(params['batch_size'], ([None], [None], ()), (0, 0, -1))
         data = data.prefetch(tf.data.experimental.AUTOTUNE)
     else:
         data = tf.data.Dataset.from_generator(lambda: bert_data_generator(params['test_path'], params),
-                                              output_shapes=([None], ()),
-                                              output_types=(tf.int32, tf.int32))
+                                              output_shapes=([None], [None], ()),
+                                              output_types=(tf.int32, tf.int32, tf.int32))
         data = data.shuffle(params['num_samples'])
-        data = data.padded_batch(params['batch_size'], ([None], ()), (0, -1))
+        data = data.padded_batch(params['batch_size'], ([None], [None], ()), (0, 0, -1))
         data = data.prefetch(tf.data.experimental.AUTOTUNE)
     return data
 
@@ -211,17 +211,17 @@ def bert_dataset(is_train, params):
 def roberta_dataset(is_train, params):
     if is_train:
         data = tf.data.Dataset.from_generator(lambda: roberta_data_generator(params['train_path'], params),
-                                              output_shapes=([None], ()),
-                                              output_types=(tf.int32, tf.int32))
+                                              output_shapes=([None], [None], ()),
+                                              output_types=(tf.int32, tf.int32, tf.int32))
         data = data.shuffle(params['num_samples'])
-        data = data.padded_batch(params['batch_size'], ([None], ()), (0, -1))
+        data = data.padded_batch(params['batch_size'], ([None], [None], ()), (0, 0, -1))
         data = data.prefetch(tf.data.experimental.AUTOTUNE)
     else:
         data = tf.data.Dataset.from_generator(lambda: roberta_data_generator(params['test_path'], params),
-                                              output_shapes=([None], ()),
-                                              output_types=(tf.int32, tf.int32))
+                                              output_shapes=([None], [None], ()),
+                                              output_types=(tf.int32, tf.int32, tf.int32))
         data = data.shuffle(params['num_samples'])
-        data = data.padded_batch(params['batch_size'], ([None], ()), (0, -1))
+        data = data.padded_batch(params['batch_size'], ([None], [None], ()), (0, 0, -1))
         data = data.prefetch(tf.data.experimental.AUTOTUNE)
     return data
 
@@ -229,17 +229,17 @@ def roberta_dataset(is_train, params):
 def albert_dataset(is_train, params):
     if is_train:
         data = tf.data.Dataset.from_generator(lambda: albert_data_generator(params['train_path'], params),
-                                              output_shapes=([None], ()),
-                                              output_types=(tf.int32, tf.int32))
+                                              output_shapes=([None], [None], ()),
+                                              output_types=(tf.int32, tf.int32, tf.int32))
         data = data.shuffle(params['num_samples'])
-        data = data.padded_batch(params['batch_size'], ([None], ()), (0, -1))
+        data = data.padded_batch(params['batch_size'], ([None], [None], ()), (0, 0, -1))
         data = data.prefetch(tf.data.experimental.AUTOTUNE)
     else:
         data = tf.data.Dataset.from_generator(lambda: albert_data_generator(params['test_path'], params),
-                                              output_shapes=([None], ()),
-                                              output_types=(tf.int32, tf.int32))
+                                              output_shapes=([None], [None], ()),
+                                              output_types=(tf.int32, tf.int32, tf.int32))
         data = data.shuffle(params['num_samples'])
-        data = data.padded_batch(params['batch_size'], ([None], ()), (0, -1))
+        data = data.padded_batch(params['batch_size'], ([None], [None], ()), (0, 0, -1))
         data = data.prefetch(tf.data.experimental.AUTOTUNE)
     return data
 
@@ -247,17 +247,17 @@ def albert_dataset(is_train, params):
 def xlnet_dataset(is_train, params):
     if is_train:
         data = tf.data.Dataset.from_generator(lambda: xlnet_data_generator(params['train_path'], params),
-                                              output_shapes=([None], ()),
-                                              output_types=(tf.int32, tf.int32))
+                                              output_shapes=([None], [None], ()),
+                                              output_types=(tf.int32, tf.int32, tf.int32))
         data = data.shuffle(params['num_samples'])
-        data = data.padded_batch(params['batch_size'], ([None], ()), (0, -1))
+        data = data.padded_batch(params['batch_size'], ([None], [None], ()), (0, 0, -1))
         data = data.prefetch(tf.data.experimental.AUTOTUNE)
     else:
         data = tf.data.Dataset.from_generator(lambda: xlnet_data_generator(params['test_path'], params),
-                                              output_shapes=([None], ()),
-                                              output_types=(tf.int32, tf.int32))
+                                              output_shapes=([None], [None], ()),
+                                              output_types=(tf.int32, tf.int32, tf.int32))
         data = data.shuffle(params['num_samples'])
-        data = data.padded_batch(params['batch_size'], ([None], ()), (0, -1))
+        data = data.padded_batch(params['batch_size'], ([None], [None], ()), (0, 0, -1))
         data = data.prefetch(tf.data.experimental.AUTOTUNE)
     return data
 

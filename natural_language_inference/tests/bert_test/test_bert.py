@@ -13,12 +13,12 @@
 # limitations under the License.
 # ==============================================================================
 
-"""Test case for RoBERTa (Robustly Optimized BERT Pretraining Approach) model for text classification."""
+"""Test case for BERT (Bidirectional Encoder Representations from Transformers) model for Natural Language Inference."""
 
 import tensorflow as tf
 import os
-from Hermes.natural_language_classifier.bert_model.bert import RobertaClassifier
-from Hermes.natural_language_classifier.dataset.loader import roberta_dataset
+from Hermes.natural_language_inference.bert_model.bert import BertInference
+from Hermes.natural_language_inference.dataset.loader import bert_dataset
 from tensorflow.keras.optimizers import Adam
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
@@ -26,7 +26,6 @@ print("TensorFlow Version", tf.__version__)
 print('GPU Enabled:', tf.test.is_gpu_available())
 
 params = {
-    # 'vocab_path': '../data/word.txt',
     'train_path': '../data/train.txt',
     'test_path': '../data/test.txt',
     'num_samples': 25000,
@@ -47,11 +46,11 @@ params = {
 }
 
 if __name__ == "__main__":
-    model = RobertaClassifier(params['dropout_rate'])
-    data = roberta_dataset(is_train=1, params=params)
+    model = BertInference(params['dropout_rate'], params['units'])
+    data = bert_dataset(is_train=1, params=params)
 
     for x1, x2, y in data:
-        print("Input shape: {}, {}".format(len(x1), len(x1[0])))
+        print("Input shape: {}, {}".format(len(x), len(x[0])))
         print("Target shape: {}".format(len(y)))
         out = model((x1, x2))
         print("Output shape: {}".format(out.shape))
@@ -63,10 +62,10 @@ if __name__ == "__main__":
     print("Fitting model")
     model.compile(optimizer=Adam(params['lr']), loss=tf.keras.losses.CategoricalCrossentropy(label_smoothing=.2))
     model.fit(data, epochs=2)
-    model.save("roberta_model.h5")
+    model.save("bert_model.h5")
 
     print("Evaluate model")
-    model = tf.keras.models.load_model("roberta_model.h5")
+    model = tf.keras.models.load_model("bert_model.h5")
 
-    data = roberta_dataset(is_train=0, params=params)
+    data = bert_dataset(is_train=0, params=params)
     model.evaluate(data)

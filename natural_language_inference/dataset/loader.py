@@ -3,6 +3,7 @@ import numpy as np
 import re
 
 from collections import Counter
+from transformers import BertTokenizer, RobertaTokenizer, AlbertTokenizer, XLNetTokenizer
 
 params = {
     'train_path': '../data/train.txt',
@@ -24,9 +25,25 @@ params = {
     'max_lr': 8e-4
 }
 
+bert_tokenizer = BertTokenizer.from_pretrained('bert-base-uncased',
+                                               lowercase=True,
+                                               add_special_tokens=True)
+
+albert_tokenizer = AlbertTokenizer.from_pretrained('albert-base-v2',
+                                                   lowercase=True,
+                                                   add_special_tokens=True)
+
+roberta_tokenizer = RobertaTokenizer.from_pretrained('robert-base',
+                                                     lowercase=True,
+                                                     add_special_tokens=True)
+
+xlnet_tokenizer = XLNetTokenizer.from_pretrained('xlnet-base-cased',
+                                                 lowercase=True,
+                                                 add_special_tokens=True)
+
 
 def data_generator(f_path, params):
-    label2idx = {'neutral': 0, 'entailment': 1, 'contradiction': 2, }
+    label2idx = {'neutral': 0, 'entailment': 1, 'contradiction': 2}
     with open(f_path) as f:
         print('Reading', f_path)
         for line in f:
@@ -37,6 +54,29 @@ def data_generator(f_path, params):
             text1 = [params['word2idx'].get(w, len(params['word2idx'])) for w in text1]
             text2 = [params['word2idx'].get(w, len(params['word2idx'])) for w in text2]
             yield (text1, text2), label2idx[label]
+
+
+def bert_data_generator(f_paths, params):
+    label2idx = {'neutral': 0, 'entailment': 1, 'contradiction': 2}
+    for f_path in f_paths:
+        with open(f_path) as f:
+            print('Reading', f_path)
+            for line in f:
+                line = line.rstrip()
+                label, text1, text2 = line.split('\t')
+                if label == '-':
+                    continue
+                text1 = bert_tokenizer.tokenize(text1)
+                text2 = bert_tokenizer.tokenize(text2)
+                if len(text1) + len(text2) + 3 > params['max_len']:
+                    _max_len = (params['max_len'] - 3) // 2
+                    text1 = text1[:_max_len]
+                    text2 = text2[:_max_len]
+                text = ['[CLS]'] + text1 + ['[SEP]'] + text2 + ['[SEP]']
+                text = bert_tokenizer.convert_tokens_to_ids(text)
+                seg = [0] + [0] * len(text1) + [0] + [1] * len(text2) + [1]
+                y = label2idx[label]
+                yield text, seg, y
 
 
 def dataset(is_training, params):
@@ -54,6 +94,24 @@ def dataset(is_training, params):
             output_types=((tf.int32, tf.int32), tf.int32))
         ds = ds.padded_batch(params['batch_size'], padded_shapes=(([None], [None]), ()), padding_values=((0, 0), -1))
     return ds
+
+
+def bert_dataset(is_train, params):
+    if is_train:
+        data = tf.data.Dataset.from_generator(lambda: bert_data_generator(params['train_path'], params),
+                                              output_shapes=([None], [None], ()),
+                                              output_types=(tf.int32, tf.int32, tf.int32))
+        data = data.shuffle(params['num_samples'])
+        data = data.padded_batch(params['batch_size'], ([None], [None], ()), (0, 0, -1))
+        data = data.prefetch(tf.data.experimental.AUTOTUNE)
+    else:
+        data = tf.data.Dataset.from_generator(lambda: bert_data_generator(params['test_path'], params),
+                                              output_shapes=([None], [None], ()),
+                                              output_types=(tf.int32, tf.int32, tf.int32))
+        data = data.shuffle(params['num_samples'])
+        data = data.padded_batch(params['batch_size'], ([None], [None], ()), (0, 0, -1))
+        data = data.prefetch(tf.data.experimental.AUTOTUNE)
+    return data
 
 
 def normalize(x):

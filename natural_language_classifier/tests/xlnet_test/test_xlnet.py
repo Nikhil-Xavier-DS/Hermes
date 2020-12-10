@@ -50,10 +50,10 @@ if __name__ == "__main__":
     model = XLNetClassifier(params['dropout_rate'])
     data = xlnet_dataset(is_train=1, params=params)
 
-    for x, y in data:
-        print("Input shape: {}, {}".format(len(x), len(x[0])))
+    for x1, x2, y in data:
+        print("Input shape: {}, {}".format(len(x1), len(x1[0])))
         print("Target shape: {}".format(len(y)))
-        out = model(x)
+        out = model((x1, x2))
         print("Output shape: {}".format(out.shape))
         print("Model Output")
         print(out)
@@ -63,7 +63,7 @@ if __name__ == "__main__":
     print("Fitting model")
     model.compile(optimizer=Adam(params['lr']), loss=tf.keras.losses.CategoricalCrossentropy(label_smoothing=.2))
     model.fit(data, epochs=2)
-    model.save("feed_forward_model.h5")
+    model.save("xlnet_model.h5")
 
     print("Evaluate model")
     model = tf.keras.models.load_model("xlnet_model.h5")
