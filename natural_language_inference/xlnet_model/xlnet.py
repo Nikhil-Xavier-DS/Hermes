@@ -13,35 +13,36 @@
 # limitations under the License.
 # ==============================================================================
 
-"""ALBERT (A Lite Bidirectional Encoder Representations from Transformers) model for text classification."""
+"""XLNet model for Natural Language Inference."""
 
 import tensorflow as tf
 import time
 import logging
 
 from tensorflow.keras import Model
-from transformers import TFAlbertModel
+from transformers import TFXLNetModel
 
 
-class AlbertClassifier(Model):
+class XLNetInference(Model):
     EPOCHS = 1
     logger = logging.getLogger('tensorflow')
     logger.setLevel(logging.INFO)
 
-    def __init__(self, dropout=0.1):
+    def __init__(self, dropout_rate=0.2, units=300):
         super().__init__()
-        self.albert = TFAlbertModel.from_pretrained('bert-base-uncased',
-                                                    trainable=True)
-        self.drop = tf.keras.layers.Dropout(dropout)
-        self.fc = tf.keras.layers.Dense(300, tf.nn.swish)
-        self.out = tf.keras.layers.Dense(2)
+        self.xlnet = TFXLNetModel.from_pretrained('bert-base-uncased',
+                                                 trainable=True)
+        self.drop1 = tf.keras.layers.Dropout(dropout_rate)
+        self.drop2 = tf.keras.layers.Dropout(dropout_rate)
+        self.fc = tf.keras.layers.Dense(units, tf.nn.swish)
+        self.out = tf.keras.layers.Dense(3)
 
-    def call(self, albert_inp, training):
-        albert_inp = [tf.cast(inp, tf.int32) for inp in albert_inp]
-        x = self.albert(albert_inp, training=training)[1]
-        x = self.drop(x, training=training)
+    def call(self, xlnet_inps, training):
+        xlnet_inps = [tf.cast(inp, tf.int32) for inp in xlnet_inps]
+        x = self.xlnet(xlnet_inps, training=training)[1]
+        x = self.drop1(x, training=training)
         x = self.fc(x)
-        x = self.drop(x, training=training)
+        x = self.drop2(x, training=training)
         x = self.out(x)
         return x
 
@@ -52,9 +53,9 @@ class AlbertClassifier(Model):
         while epoch <= epochs:
             for texts, segs, labels in data:
                 with tf.GradientTape() as tape:
-                    logits = self.call([texts, tf.sign(texts), segs], training=True)
-                    loss = tf.reduce_mean(self.compiled_loss(labels=tf.one_hot(labels, 2),
-                                                             logits=logits))
+                    logits = self([texts, tf.sign(texts), segs], training=True)
+                    loss = self.compiled_loss(labels=tf.one_hot(labels, 3),
+                                              logits=logits)
                 self.optimizer.lr.assign(self.decay_lr(step))
                 grads = tape.gradient(loss, self.trainable_variables)
                 grads, _ = tf.clip_by_global_norm(grads, 5.)
@@ -70,7 +71,7 @@ class AlbertClassifier(Model):
     def evaluate(self, data):
         self.accuracy.reset_states()
         for texts, segs, labels in data:
-            logits = self.call([texts, tf.sign(texts), segs], training=False)
+            logits = self([texts, tf.sign(texts), segs], training=False)
             y_pred = tf.argmax(logits, axis=-1)
             self.accuracy.update_state(y_true=labels, y_pred=y_pred)
         accuracy = self.accuracy.result().numpy()

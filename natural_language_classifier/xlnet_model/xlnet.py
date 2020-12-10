@@ -33,7 +33,7 @@ class XLNetClassifier(Model):
         self.xlnet = TFXLNetModel.from_pretrained('xlnet-base-cased',
                                                   trainable=True)
         self.drop = tf.keras.layers.Dropout(dropout)
-        self.fc = tf.keras.layers.Dense(300, tf.nn.silu)
+        self.fc = tf.keras.layers.Dense(300, tf.nn.swish)
         self.out = tf.keras.layers.Dense(2)
 
     def call(self, xlnet_inp, training):

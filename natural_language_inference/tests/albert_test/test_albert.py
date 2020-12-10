@@ -17,8 +17,8 @@
 
 import tensorflow as tf
 import os
-from Hermes.natural_language_inference.bert_model.bert import RobertaInference
-from Hermes.natural_language_inference.dataset.loader import roberta_dataset
+from Hermes.natural_language_inference.bert_model.bert import AlbertInference
+from Hermes.natural_language_inference.dataset.loader import albert_dataset
 from tensorflow.keras.optimizers import Adam
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
@@ -46,8 +46,8 @@ params = {
 }
 
 if __name__ == "__main__":
-    model = RobertaInference(params['dropout_rate'], params['units'])
-    data = roberta_dataset(is_train=1, params=params)
+    model = AlbertInference(params['dropout_rate'], params['units'])
+    data = albert_dataset(is_train=1, params=params)
 
     for x1, x2, y in data:
         print("Input shape: {}, {}".format(len(x), len(x[0])))
@@ -62,10 +62,10 @@ if __name__ == "__main__":
     print("Fitting model")
     model.compile(optimizer=Adam(params['lr']), loss=tf.keras.losses.CategoricalCrossentropy(label_smoothing=.2))
     model.fit(data, epochs=2)
-    model.save("bert_model.h5")
+    model.save("Albert_model.h5")
 
     print("Evaluate model")
-    model = tf.keras.models.load_model("bert_model.h5")
+    model = tf.keras.models.load_model("albert_model.h5")
 
-    data = roberta_dataset(is_train=0, params=params)
+    data = bert_dataset(is_train=0, params=params)
     model.evaluate(data)

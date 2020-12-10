@@ -79,6 +79,75 @@ def bert_data_generator(f_paths, params):
                 yield text, seg, y
 
 
+def albert_data_generator(f_paths, params):
+    label2idx = {'neutral': 0, 'entailment': 1, 'contradiction': 2}
+    for f_path in f_paths:
+        with open(f_path) as f:
+            print('Reading', f_path)
+            for line in f:
+                line = line.rstrip()
+                label, text1, text2 = line.split('\t')
+                if label == '-':
+                    continue
+                text1 = albert_tokenizer.tokenize(text1)
+                text2 = albert_tokenizer.tokenize(text2)
+                if len(text1) + len(text2) + 3 > params['max_len']:
+                    _max_len = (params['max_len'] - 3) // 2
+                    text1 = text1[:_max_len]
+                    text2 = text2[:_max_len]
+                text = ['[CLS]'] + text1 + ['[SEP]'] + text2 + ['[SEP]']
+                text = albert_tokenizer.convert_tokens_to_ids(text)
+                seg = [0] + [0] * len(text1) + [0] + [1] * len(text2) + [1]
+                y = label2idx[label]
+                yield text, seg, y
+
+
+def xlnet_data_generator(f_paths, params):
+    label2idx = {'neutral': 0, 'entailment': 1, 'contradiction': 2}
+    for f_path in f_paths:
+        with open(f_path) as f:
+            print('Reading', f_path)
+            for line in f:
+                line = line.rstrip()
+                label, text1, text2 = line.split('\t')
+                if label == '-':
+                    continue
+                text1 = xlnet_tokenizer.tokenize(text1)
+                text2 = xlnet_tokenizer.tokenize(text2)
+                if len(text1) + len(text2) + 3 > params['max_len']:
+                    _max_len = (params['max_len'] - 3) // 2
+                    text1 = text1[:_max_len]
+                    text2 = text2[:_max_len]
+                text = [['<s>']] + text1 + ['</s>'] + text2 + ['</s>']
+                text = xlnet_tokenizer.convert_tokens_to_ids(text)
+                seg = [0] + [0] * len(text1) + [0] + [1] * len(text2) + [1]
+                y = label2idx[label]
+                yield text, seg, y
+
+
+def roberta_data_generator(f_paths, params):
+    label2idx = {'neutral': 0, 'entailment': 1, 'contradiction': 2}
+    for f_path in f_paths:
+        with open(f_path) as f:
+            print('Reading', f_path)
+            for line in f:
+                line = line.rstrip()
+                label, text1, text2 = line.split('\t')
+                if label == '-':
+                    continue
+                text1 = roberta_tokenizer.tokenize(text1)
+                text2 = roberta_tokenizer.tokenize(text2)
+                if len(text1) + len(text2) + 3 > params['max_len']:
+                    _max_len = (params['max_len'] - 3) // 2
+                    text1 = text1[:_max_len]
+                    text2 = text2[:_max_len]
+                text = ['[CLS]'] + text1 + ['[SEP]'] + text2 + ['[SEP]']
+                text = roberta_tokenizer.convert_tokens_to_ids(text)
+                seg = [0] + [0] * len(text1) + [0] + [1] * len(text2) + [1]
+                y = label2idx[label]
+                yield text, seg, y
+
+
 def dataset(is_training, params):
     if is_training:
         ds = tf.data.Dataset.from_generator(
@@ -96,6 +165,24 @@ def dataset(is_training, params):
     return ds
 
 
+def albert_dataset(is_train, params):
+    if is_train:
+        data = tf.data.Dataset.from_generator(lambda: albert_data_generator(params['train_path'], params),
+                                              output_shapes=([None], [None], ()),
+                                              output_types=(tf.int32, tf.int32, tf.int32))
+        data = data.shuffle(params['num_samples'])
+        data = data.padded_batch(params['batch_size'], ([None], [None], ()), (0, 0, -1))
+        data = data.prefetch(tf.data.experimental.AUTOTUNE)
+    else:
+        data = tf.data.Dataset.from_generator(lambda: albert_data_generator(params['test_path'], params),
+                                              output_shapes=([None], [None], ()),
+                                              output_types=(tf.int32, tf.int32, tf.int32))
+        data = data.shuffle(params['num_samples'])
+        data = data.padded_batch(params['batch_size'], ([None], [None], ()), (0, 0, -1))
+        data = data.prefetch(tf.data.experimental.AUTOTUNE)
+    return data
+
+
 def bert_dataset(is_train, params):
     if is_train:
         data = tf.data.Dataset.from_generator(lambda: bert_data_generator(params['train_path'], params),
@@ -106,6 +193,42 @@ def bert_dataset(is_train, params):
         data = data.prefetch(tf.data.experimental.AUTOTUNE)
     else:
         data = tf.data.Dataset.from_generator(lambda: bert_data_generator(params['test_path'], params),
+                                              output_shapes=([None], [None], ()),
+                                              output_types=(tf.int32, tf.int32, tf.int32))
+        data = data.shuffle(params['num_samples'])
+        data = data.padded_batch(params['batch_size'], ([None], [None], ()), (0, 0, -1))
+        data = data.prefetch(tf.data.experimental.AUTOTUNE)
+    return data
+
+
+def roberta_dataset(is_train, params):
+    if is_train:
+        data = tf.data.Dataset.from_generator(lambda: roberta_data_generator(params['train_path'], params),
+                                              output_shapes=([None], [None], ()),
+                                              output_types=(tf.int32, tf.int32, tf.int32))
+        data = data.shuffle(params['num_samples'])
+        data = data.padded_batch(params['batch_size'], ([None], [None], ()), (0, 0, -1))
+        data = data.prefetch(tf.data.experimental.AUTOTUNE)
+    else:
+        data = tf.data.Dataset.from_generator(lambda: roberta_data_generator(params['test_path'], params),
+                                              output_shapes=([None], [None], ()),
+                                              output_types=(tf.int32, tf.int32, tf.int32))
+        data = data.shuffle(params['num_samples'])
+        data = data.padded_batch(params['batch_size'], ([None], [None], ()), (0, 0, -1))
+        data = data.prefetch(tf.data.experimental.AUTOTUNE)
+    return data
+
+
+def xlnet_dataset(is_train, params):
+    if is_train:
+        data = tf.data.Dataset.from_generator(lambda: xlnet_data_generator(params['train_path'], params),
+                                              output_shapes=([None], [None], ()),
+                                              output_types=(tf.int32, tf.int32, tf.int32))
+        data = data.shuffle(params['num_samples'])
+        data = data.padded_batch(params['batch_size'], ([None], [None], ()), (0, 0, -1))
+        data = data.prefetch(tf.data.experimental.AUTOTUNE)
+    else:
+        data = tf.data.Dataset.from_generator(lambda: xlnet_data_generator(params['test_path'], params),
                                               output_shapes=([None], [None], ()),
                                               output_types=(tf.int32, tf.int32, tf.int32))
         data = data.shuffle(params['num_samples'])

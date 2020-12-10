@@ -17,8 +17,8 @@
 
 import tensorflow as tf
 import os
-from Hermes.natural_language_inference.bert_model.bert import RobertaInference
-from Hermes.natural_language_inference.dataset.loader import roberta_dataset
+from Hermes.natural_language_inference.bert_model.bert import XLNetInference
+from Hermes.natural_language_inference.dataset.loader import xlnet_dataset
 from tensorflow.keras.optimizers import Adam
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
@@ -46,8 +46,8 @@ params = {
 }
 
 if __name__ == "__main__":
-    model = RobertaInference(params['dropout_rate'], params['units'])
-    data = roberta_dataset(is_train=1, params=params)
+    model = XLNetInference(params['dropout_rate'], params['units'])
+    data = xlnet_dataset(is_train=1, params=params)
 
     for x1, x2, y in data:
         print("Input shape: {}, {}".format(len(x), len(x[0])))
@@ -65,7 +65,7 @@ if __name__ == "__main__":
     model.save("bert_model.h5")
 
     print("Evaluate model")
-    model = tf.keras.models.load_model("bert_model.h5")
+    model = tf.keras.models.load_model("xlnet_model.h5")
 
-    data = roberta_dataset(is_train=0, params=params)
+    data = xlnet_dataset(is_train=0, params=params)
     model.evaluate(data)
