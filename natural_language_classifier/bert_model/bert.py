@@ -28,7 +28,7 @@ class BertClassifier(Model):
     logger = logging.getLogger('tensorflow')
     logger.setLevel(logging.INFO)
 
-    def __init__(self, dropout=0.1, , units=300):
+    def __init__(self, dropout=0.1, units=300):
         super().__init__()
         self.bert = TFBertModel.from_pretrained('bert-base-uncased',
                                                 trainable=True)
