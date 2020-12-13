@@ -6,8 +6,8 @@ Natural language processing is a subfield of linguistics, computer science, and 
 Some of the popular NLP tasks implemented in Hermes includes text classification, sentences inference, machine translation.
 
 ### [Text Classification](https://github.com/Nikhil-Xavier-DS/Hermes/tree/master/natural_language_classifier)
->* Feedforward Attention based Text Classification Model (Naive attention, CNN based attention, Char embed attention)
->* Parallel Recurrent based Text Classification Model (Sliced LSTM, Sliced LSTM with attention)
+>* Feedforward Attention based Text Classification Models
+>* Parallel Recurrent based Text Classification Models
 >* BERT based model for Text Classification Model
 >* ALBERT based model for Text Classification Model
 >* RoBERTa based model for Text Classification Model
