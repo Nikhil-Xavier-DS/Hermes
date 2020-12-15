@@ -12,7 +12,7 @@ The code is implemented based on the publication, [Feed-Forward Networks with At
 
 Attention is an easier modeling of long-term dependencies. Attention mechanisms allow for a more direct dependence between the state of the model at different points in time. Following the definition from (Bahdanau et al., 2014), given a model which produces a hidden state at each time step, attention-based models compute a “context” vector ct as the weighted mean of the state sequence.
 
-<img src="https://d3i71xaburhd42.cloudfront.net/87119572d1065fb079e1dee8fcdb6c4811143f96/250px/2-Figure1-1.png" height="350">
+<img src="https://d3i71xaburhd42.cloudfront.net/87119572d1065fb079e1dee8fcdb6c4811143f96/250px/2-Figure1-1.png">
 
 A limitation of the proposed model is that it will fail on any task where temporal order matters because computing an average over time discards order information. For example, on the two symbol temporal order task where a sequence must be classified in terms of whether two symbols X and Y appear in the order X, X; Y, Y ; X, Y ; or Y, X, our model can differentiate between the X, X and Y, Y cases perfectly but cannot differentiate between the X, Y and Y, X cases at all.
 
