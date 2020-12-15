@@ -16,13 +16,7 @@ Attention is an easier modeling of long-term dependencies. Attention mechanisms 
 
 A limitation of the proposed model is that it will fail on any task where temporal order matters because computing an average over time discards order information. For example, on the two symbol temporal order task where a sequence must be classified in terms of whether two symbols X and Y appear in the order X, X; Y, Y ; X, Y ; or Y, X, our model can differentiate between the X, X and Y, Y cases perfectly but cannot differentiate between the X, Y and Y, X cases at all.
 
-
-
-
-
-
-
 ### [Parallel Recurrent based Text Classification Models](https://github.com/Nikhil-Xavier-DS/Hermes/tree/master/natural_language_classifier/parallel_recurrent_model)
 The code is implemented based on the publication, [Sliced Recurrent Neural Networks](https://arxiv.org/abs/1807.02291). Recurrent neural networks have achieved great success in many NLP tasks. However, they have difficulty in parallelization because of the recurrent structure, so it takes much time to train RNNs. The paper proposes sliced recurrent neural networks (SRNNs), which could be parallelized by slicing the sequences into many subsequences. SRNNs have the ability to obtain high-level information through multiple layers with few extra parameters.
 
-<img src="https://d3i71xaburhd42.cloudfront.net/eefbe0d29fa9955caffc51777991cefbdbbaabab/250px/3-Figure2-1.png" width="360">
+<img src="https://d3i71xaburhd42.cloudfront.net/eefbe0d29fa9955caffc51777991cefbdbbaabab/250px/3-Figure2-1.png" width="240">
