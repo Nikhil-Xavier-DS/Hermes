@@ -59,7 +59,17 @@ RoBERTa shows that performance can be substantially improved by training the mod
 
 RoBERTa has the same architecture as BERT, but uses a byte-level BPE as a tokenizer (same as GPT-2) and uses a different pretraining scheme.
 
+### [XLNet based Text Classification Models](https://github.com/Nikhil-Xavier-DS/Hermes/tree/master/natural_language_classifier/xlnet_model)
+The code is implemented based on the publication, [XLNet: Generalized Autoregressive Pretraining for Language Understanding](https://arxiv.org/abs/1906.08237). 
+With the capability of modeling bidirectional contexts, denoising autoencoding based pretraining like BERT achieves better performance than pretraining approaches based on autoregressive language modeling.  However, relying on corrupting the input with masks, BERT neglects dependency between the masked positions and suffers from a pretrain-finetune discrepancy. In light of these pros and cons, XLNet model is proposed. XLNet is a generalized autoregressive pretraining method that enables learning bidirectional contexts by maximizing the expected likelihood over all permutations of the factorization order and overcoming the limitations of BERT model due to autoregressive formulation. Furthermore, XLNet integrates ideas from Transformer-XL, the state-of-the-art autoregressive model, into pretraining. XLNet outperforms BERT on 20 tasks, often by a large margin, including question answering, natural language inference, sentiment analysis, and document ranking.
+
+<img src="https://pytorch.org/tutorials/_images/bert.png" width="360">
+
+RoBERTa has the same architecture as BERT, but uses a byte-level BPE as a tokenizer (same as GPT-2) and uses a different pretraining scheme.
+
 #### Reference
+1. Zhilin Yang, Zihang Dai, Yiming Yang, Jaime Carbonell, Ruslan Salakhutdinov, Quoc V. Le. 2020. "XLNet: Generalized Autoregressive Pretraining for Language Understanding"
+2. https://huggingface.co/transformers/index.html#### Reference
 1. Zeping Yu, Gongshen Liu. 2018. "Sliced Recurrent Neural Networks". In Proceedings of the 27th International Conference on Computational Linguistics (COLING 2018)
 2. Colin Raffel, Daniel P. W. Ellis. 2016. "Feed-Forward Networks with Attention Can Solve Some Long-Term Memory Problems". In Proceedings of the Neural and Evolutionary Computing (cs.NE)
 3. Jacob Devlin, Ming-Wei Chang, Kenton Lee, Kristina Toutanova. 2019. "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding"
