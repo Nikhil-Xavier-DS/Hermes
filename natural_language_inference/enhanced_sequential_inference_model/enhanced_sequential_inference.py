@@ -13,7 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
-"""Enhanced Sequential Inference Model for Natural Language Inference"""
+"""Enhanced Decomposable Attention Model for Natural Language Inference"""
 
 import tensorflow as tf
 import time
@@ -84,7 +84,7 @@ class SoftAlignAttention(Model):
         return tf.matmul(align, x)
 
 
-class ESIMModel(Model):
+class EnhancedDAM(Model):
     EPOCHS = 1
     logger = logging.getLogger('tensorflow')
     logger.setLevel(logging.INFO)
