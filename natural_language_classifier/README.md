@@ -68,8 +68,6 @@ With the capability of modeling bidirectional contexts, denoising autoencoding b
 Due to the difficulty of training a fully auto-regressive model over various factorization order, XLNet is pretrained using only a sub-set of the output tokens as target which are selected. XLNet is one of the few models that has no sequence length limit.
 
 #### Reference
-1. Zhilin Yang, Zihang Dai, Yiming Yang, Jaime Carbonell, Ruslan Salakhutdinov, Quoc V. Le. 2020. "XLNet: Generalized Autoregressive Pretraining for Language Understanding"
-2. https://huggingface.co/transformers/index.html#### Reference
 1. Zeping Yu, Gongshen Liu. 2018. "Sliced Recurrent Neural Networks". In Proceedings of the 27th International Conference on Computational Linguistics (COLING 2018)
 2. Colin Raffel, Daniel P. W. Ellis. 2016. "Feed-Forward Networks with Attention Can Solve Some Long-Term Memory Problems". In Proceedings of the Neural and Evolutionary Computing (cs.NE)
 3. Jacob Devlin, Ming-Wei Chang, Kenton Lee, Kristina Toutanova. 2019. "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding"
