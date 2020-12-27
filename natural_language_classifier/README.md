@@ -34,7 +34,7 @@ BERT is a model with absolute position embeddings so it’s usually advised to p
 
 BERT was trained with the masked language modeling (MLM) and next sentence prediction (NSP) objectives. It is efficient at predicting masked tokens and at NLU in general, but is not optimal for text generation.
 
-# [ALBERT based Text Classification Models](https://github.com/Nikhil-Xavier-DS/Hermes/tree/master/natural_language_classifier/albert_model)
+### [ALBERT based Text Classification Models](https://github.com/Nikhil-Xavier-DS/Hermes/tree/master/natural_language_classifier/albert_model)
 The code is implemented based on the publication, [ ALBERT: A Lite BERT for Self-supervised Learning of Language Representations](https://arxiv.org/abs/1909.11942). The paper proposes two parameter-reduction techniques to lower memory consumption and increase the training speed of BERT:
 a) Splitting the embedding matrix into two smaller matrices.
 b) Using repeating layers split among groups.
@@ -47,10 +47,23 @@ Paper also use a self-supervised loss that focuses on modeling inter-sentence co
 
 ALBERT is a model with absolute position embeddings so it’s usually advised to pad the inputs on the right rather than the left. It also uses repeating layers which results in a small memory footprint, however the computational cost remains similar to a BERT-like architecture with the same number of hidden layers as it has to iterate through the same number of (repeating) layers.
 
+### [RoBERTa based Text Classification Models](https://github.com/Nikhil-Xavier-DS/Hermes/tree/master/natural_language_classifier/roberta_model)
+The code is implemented based on the publication, [RoBERTa: A Robustly Optimized BERT Pretraining Approach](https://arxiv.org/abs/1907.11692). 
+RoBERTa is built on BERT and modified key hyperparameters and removes the next-sentence pretraining objective, and also training with much larger mini-batches and learning rates.
+
+Language model pre-training has led to significant performance gains but careful comparison between different approaches is challenging. Training is computationally expensive, often done on private datasets of different sizes, and, the paper shows that hyperparameter choices have significant impact on the final results. The paper shows that BERT was significantly undertrained, and can match or exceed the performance of every model published after it. RoBERTa models achieves state-of-the-art results on GLUE, RACE and SQuAD. These results highlight the importance of previously overlooked design choices.
+
+RoBERTa shows that performance can be substantially improved by training the model longer, with bigger batches over more data; removing the next sentence prediction objective; training on longer sequences; and dynamically changing the masking pattern applied to the training data. 
+
+<img src="https://pytorch.org/tutorials/_images/bert.png" width="360">
+
+RoBERTa has the same architecture as BERT, but uses a byte-level BPE as a tokenizer (same as GPT-2) and uses a different pretraining scheme.
+
 #### Reference
-1. Zeping Yu, Gongshen Liu. 2018. Sliced Recurrent Neural Networks. In Proceedings of the 27th International Conference on Computational Linguistics (COLING 2018)
-2. Colin Raffel, Daniel P. W. Ellis. 2016. Feed-Forward Networks with Attention Can Solve Some Long-Term Memory Problems. In Proceedings of the Neural and Evolutionary Computing (cs.NE)
-3. Jacob Devlin, Ming-Wei Chang, Kenton Lee, Kristina Toutanova. 2019. BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding
-4. https://pytorch.org/tutorials/intermediate/dynamic_quantization_bert_tutorial.html
-5. https://huggingface.co/transformers/index.html
+1. Zeping Yu, Gongshen Liu. 2018. "Sliced Recurrent Neural Networks". In Proceedings of the 27th International Conference on Computational Linguistics (COLING 2018)
+2. Colin Raffel, Daniel P. W. Ellis. 2016. "Feed-Forward Networks with Attention Can Solve Some Long-Term Memory Problems". In Proceedings of the Neural and Evolutionary Computing (cs.NE)
+3. Jacob Devlin, Ming-Wei Chang, Kenton Lee, Kristina Toutanova. 2019. "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding"
+4. Yinhan Liu, Myle Ott, Naman Goyal, Jingfei Du, Mandar Joshi, Danqi Chen, Omer Levy, Mike Lewis, Luke Zettlemoyer, Veselin Stoyanov. 2019. "RoBERTa: A Robustly Optimized BERT Pretraining Approach"
+5. https://pytorch.org/tutorials/intermediate/dynamic_quantization_bert_tutorial.html
+6. https://huggingface.co/transformers/index.html
 6. Git repository by zhedongzheng named tensorflow-nlp (https://github.com/zhedongzheng/tensorflow-nlp)

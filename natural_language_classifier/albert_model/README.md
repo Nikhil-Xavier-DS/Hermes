@@ -12,5 +12,5 @@ Paper also use a self-supervised loss that focuses on modeling inter-sentence co
 ALBERT is a model with absolute position embeddings so it’s usually advised to pad the inputs on the right rather than the left. It also uses repeating layers which results in a small memory footprint, however the computational cost remains similar to a BERT-like architecture with the same number of hidden layers as it has to iterate through the same number of (repeating) layers.
 
 #### Reference
-1. Zhenzhong Lan1 Mingda Chen2∗ Sebastian Goodman1 Kevin Gimpel2 Piyush Sharma1 Radu Soricut. 2019. BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding. https://arxiv.org/abs/1909.11942
+1. Zhenzhong Lan1 Mingda Chen2∗ Sebastian Goodman1 Kevin Gimpel2 Piyush Sharma1 Radu Soricut. 2019. "ALBERT: A Lite BERT for Self-supervised Learning of Language Representations"
 2. https://huggingface.co/transformers/index.html
