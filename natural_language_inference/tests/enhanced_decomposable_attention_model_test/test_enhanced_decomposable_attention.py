@@ -18,7 +18,7 @@
 import tensorflow as tf
 import os
 
-from Hermes.natural_language_inference.enhanced_sequential_inference_model.enhansed_sequential_inference import ESIM
+from Hermes.natural_language_inference.enhanced_decomposable_attention_model.enhanced_decomposable_attention import EnhancedDAM
 from Hermes.natural_language_inference.dataset.loader import dataset
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
@@ -50,7 +50,7 @@ if __name__ == "__main__":
     params['word2idx'] = word2idx
     params['idx2word'] = idx2word
     params['vocab_size'] = len(word2idx) + 1
-    model = ESIM(params['lr'], params['dropout_rate'], params['units'])
+    model = EnhancedDAM(params['lr'], params['dropout_rate'], params['units'])
     data = dataset(is_train=1, params=params)
 
     for x, y in data:
