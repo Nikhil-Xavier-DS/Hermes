@@ -8,35 +8,26 @@ Natural language processing is a subfield of linguistics, computer science, and 
 Some of the popular natural language inference algorithms implemented in Hermes are explained in brief below.
 
 ### [Decomposable Attention based Natural Language Inference Model](https://github.com/Nikhil-Xavier-DS/Hermes/tree/master/natural_language_inference/decomposable_attention_model)
-The code is implemented based on the publication, [XLNet: Generalized Autoregressive Pretraining for Language Understanding](https://arxiv.org/abs/). 
+The code is implemented based on the publication, [A Decomposable Attention Model for Natural Language Inference](https://arxiv.org/abs/1606.01933). 
+The paper proposes a simple neural architecture for natural language inference. The approach proposed uses attention to decompose the problem into sub-problems that can be solved separately, thus making it trivially parallelizable. On the Stanford Natural Language Inference (SNLI) dataset, the decomposable attention model churns out state-of-the-art results with almost an order of magnitude fewer parameters than previous work and without relying on any word-order information. Adding intra-sentence attention that takes a minimum amount of order into account yields further improvements.
+
+<img src="https://www.pngitem.com/pimgs/m/578-5787448_decomposable-attention-model-for-natural-language-inference-hd.png" width="360">
+
+### [Match Pyramid Language Inference Model](https://github.com/Nikhil-Xavier-DS/Hermes/tree/master/natural_language_inference/match_pyramid_model)
+The code is implemented based on the publication, [Text Matching as Image Recognition](https://arxiv.org/abs/1602.06359). 
 Matching two texts is a fundamental problem in many natural language processing tasks. An effective way is to extract meaningful matching patterns from words, phrases, and sentences to produce the matching score. Inspired by the success of convolutional neural network in image recognition, where neurons can capture many complicated patterns based on the extracted elementary visual patterns such as oriented edges and corners, the paper proposes to model text matching as the problem of image recognition. Firstly, a matching matrix whose entries represent the similarities between words is constructed and viewed as an image. Then a convolutional neural network is utilized to capture rich matching patterns in a layer-by-layer way.
 
 <img src="https://www.mdpi.com/information/information-11-00421/article_deploy/html/images/information-11-00421-g007.png" width="360">
 
 The model proposed can successfully identify salient signals such as n-gram and n-term matchings by resembling the compositional hierarchies of patterns in image recognition.
 
-### [Match Pyramid Language Inference Model](https://github.com/Nikhil-Xavier-DS/Hermes/tree/master/natural_language_inference/xlnet_model)
-The code is implemented based on the publication, [Text Matching as Image Recognition](https://arxiv.org/abs/1602.06359). 
-With the capability of modeling bidirectional contexts, denoising autoencoding based pretraining like BERT achieves better performance than pretraining approaches based on autoregressive language modeling.  However, relying on corrupting the input with masks, BERT neglects dependency between the masked positions and suffers from a pretrain-finetune discrepancy. In light of these pros and cons, XLNet model is proposed. XLNet is a generalized autoregressive pretraining method that enables learning bidirectional contexts by maximizing the expected likelihood over all permutations of the factorization order and overcoming the limitations of BERT model due to autoregressive formulation. Furthermore, XLNet integrates ideas from Transformer-XL, the state-of-the-art autoregressive model, into pretraining. XLNet outperforms BERT on 20 tasks, often by a large margin, including question answering, natural language inference, sentiment analysis, and document ranking.
+### [Enhanced Sequential Inference Model](https://github.com/Nikhil-Xavier-DS/Hermes/tree/master/natural_language_inference/enhanced_sequential_inference_model)
+The code is implemented based on the publication, [Enhanced LSTM for Natural Language Inference](https://arxiv.org/abs/1609.06038). 
+Reasoning and inference are central to human and artificial intelligence. Modeling inference in human language is very challenging. With the availability of large annotated data, it has recently become feasible to train neural network based inference models, which have shown to be very effective. The paper presents a new state-of-the-art model, achieving the accuracy of 88.6% on the Stanford Natural Language Inference Dataset. Unlike the previous top models that use very complicated network architectures, the proposed model first demonstrate that carefully designing sequential inference models based on chain LSTMs can outperform all previous models. 
 
-<img src="https://i0.wp.com/mlexplained.com/wp-content/uploads/2019/06/Screen-Shot-2019-06-22-at-5.38.12-PM.png?resize=1024%2C567&ssl=1" width="360">
+<img src="https://raw.githubusercontent.com/coetaur0/ESIM/master/esim.png" width="360">
 
-Due to the difficulty of training a fully auto-regressive model over various factorization order, XLNet is pretrained using only a sub-set of the output tokens as target which are selected. XLNet is one of the few models that has no sequence length limit.
-
-### [Enhanced Sequential Inference Model](https://github.com/Nikhil-Xavier-DS/Hermes/tree/master/natural_language_inference/xlnet_model)
-The code is implemented based on the publication, [XLNet: Generalized Autoregressive Pretraining for Language Understanding](https://arxiv.org/abs/). 
-With the capability of modeling bidirectional contexts, denoising autoencoding based pretraining like BERT achieves better performance than pretraining approaches based on autoregressive language modeling.  However, relying on corrupting the input with masks, BERT neglects dependency between the masked positions and suffers from a pretrain-finetune discrepancy. In light of these pros and cons, XLNet model is proposed. XLNet is a generalized autoregressive pretraining method that enables learning bidirectional contexts by maximizing the expected likelihood over all permutations of the factorization order and overcoming the limitations of BERT model due to autoregressive formulation. Furthermore, XLNet integrates ideas from Transformer-XL, the state-of-the-art autoregressive model, into pretraining. XLNet outperforms BERT on 20 tasks, often by a large margin, including question answering, natural language inference, sentiment analysis, and document ranking.
-
-<img src="https://i0.wp.com/mlexplained.com/wp-content/uploads/2019/06/Screen-Shot-2019-06-22-at-5.38.12-PM.png?resize=1024%2C567&ssl=1" width="360">
-
-Due to the difficulty of training a fully auto-regressive model over various factorization order, XLNet is pretrained using only a sub-set of the output tokens as target which are selected. XLNet is one of the few models that has no sequence length limit.
-
-
-
-
-
-
-
+The paper also shows that by explicitly considering recursive architectures in both local inference modeling and inference composition, the model can achieve additional improvement. Particularly, incorporating syntactic parsing information, the model further improves the performance even when added to the already very strong model.
 
 ### [BERT based Natural Language Inference Models](https://github.com/Nikhil-Xavier-DS/Hermes/tree/master/natural_language_inference/bert_model)
 The code is implemented based on the publication, [BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding](https://arxiv.org/abs/1810.04805). The paper proposes a new language representation model called BERT, which stands for Bidirectional Encoder Representations from Transformers. Unlike recent language representation models, BERT is designed to pre-train deep bidirectional representations from unlabeled text by jointly conditioning on both left and right context in all layers. As a result, the pre-trained BERT model can be fine-tuned with just one additional output layer to create state-of-the-art models for a wide range of tasks, such as question answering and language inference, without substantial task-specific architecture modifications.
@@ -83,16 +74,19 @@ With the capability of modeling bidirectional contexts, denoising autoencoding b
 Due to the difficulty of training a fully auto-regressive model over various factorization order, XLNet is pretrained using only a sub-set of the output tokens as target which are selected. XLNet is one of the few models that has no sequence length limit.
 
 #### Reference
-1. Zeping Yu, Gongshen Liu. 2018. "Sliced Recurrent Neural Networks". In Proceedings of the 27th International Conference on Computational Linguistics (COLING 2018)
-2. Colin Raffel, Daniel P. W. Ellis. 2016. "Feed-Forward Networks with Attention Can Solve Some Long-Term Memory Problems". In Proceedings of the Neural and Evolutionary Computing (cs.NE)
-3. Jacob Devlin, Ming-Wei Chang, Kenton Lee, Kristina Toutanova. 2019. "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding"
-4. Yinhan Liu, Myle Ott, Naman Goyal, Jingfei Du, Mandar Joshi, Danqi Chen, Omer Levy, Mike Lewis, Luke Zettlemoyer, Veselin Stoyanov. 2019. "RoBERTa: A Robustly Optimized BERT Pretraining Approach"
-5. Zhilin Yang, Zihang Dai, Yiming Yang, Jaime Carbonell, Ruslan Salakhutdinov, Quoc V. Le. 2020. "XLNet: Generalized Autoregressive Pretraining for Language Understanding"
-6. https://pytorch.org/tutorials/intermediate/dynamic_quantization_bert_tutorial.html
-7. https://huggingface.co/transformers/index.html
-8. Git repository: https://github.com/zhedongzheng/tensorflow-nlp
-9. https://www.tensorflow.org
-10. https://mlexplained.com/2019/06/30/paper-dissected-xlnet-generalized-autoregressive-pretraining-for-language-understanding-explained
-11. https://nlp.stanford.edu/projects/snli
+1. Liang Pang, Yanyan Lan, Jiafeng Guo, Jun Xu, Shengxian Wan, Xueqi Cheng. 2016. "Text Matching as Image Recognition"
+2. Ankur P. Parikh, Oscar Täckström, Dipanjan Das, Jakob Uszkoreit. 2016. "A Decomposable Attention Model for Natural Language Inference". Proceeedings of EMNLP 2016
+3. Qian Chen, Xiaodan Zhu, Zhenhua Ling, Si Wei, Hui Jiang, Diana Inkpen. 2017. "Enhanced LSTM for Natural Language Inference". Proceedings of ACL 2017
+4. Jacob Devlin, Ming-Wei Chang, Kenton Lee, Kristina Toutanova. 2019. "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding"
+5. Yinhan Liu, Myle Ott, Naman Goyal, Jingfei Du, Mandar Joshi, Danqi Chen, Omer Levy, Mike Lewis, Luke Zettlemoyer, Veselin Stoyanov. 2019. "RoBERTa: A Robustly Optimized BERT Pretraining Approach"
+6. Zhilin Yang, Zihang Dai, Yiming Yang, Jaime Carbonell, Ruslan Salakhutdinov, Quoc V. Le. 2020. "XLNet: Generalized Autoregressive Pretraining for Language Understanding"
+7. https://pytorch.org/tutorials/intermediate/dynamic_quantization_bert_tutorial.html
+8. https://huggingface.co/transformers/index.html
+9. Git repository: https://github.com/zhedongzheng/tensorflow-nlp
+10. https://www.tensorflow.org
+11. https://mlexplained.com/2019/06/30/paper-dissected-xlnet-generalized-autoregressive-pretraining-for-language-understanding-explained
+12. https://www.pngitem.com/middle/TibbRTm_decomposable-attention-model-for-natural-language-inference-hd/
+13. https://nlp.stanford.edu/projects/snli
+14. https://paperswithcode.com/paper/enhanced-lstm-for-natural-language-inference
 
 

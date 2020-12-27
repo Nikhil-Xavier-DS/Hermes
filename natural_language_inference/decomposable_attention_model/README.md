@@ -1,7 +1,12 @@
 # [Decomposable Attention based Natural Language Inference Model](https://github.com/Nikhil-Xavier-DS/Hermes/tree/master/natural_language_inference/decomposable_attention_model)
-The code is implemented based on the publication, [XLNet: Generalized Autoregressive Pretraining for Language Understanding](https://arxiv.org/abs/). 
-Matching two texts is a fundamental problem in many natural language processing tasks. An effective way is to extract meaningful matching patterns from words, phrases, and sentences to produce the matching score. Inspired by the success of convolutional neural network in image recognition, where neurons can capture many complicated patterns based on the extracted elementary visual patterns such as oriented edges and corners, the paper proposes to model text matching as the problem of image recognition. Firstly, a matching matrix whose entries represent the similarities between words is constructed and viewed as an image. Then a convolutional neural network is utilized to capture rich matching patterns in a layer-by-layer way.
+The code is implemented based on the publication, [A Decomposable Attention Model for Natural Language Inference](https://arxiv.org/abs/1606.01933). 
+The paper proposes a simple neural architecture for natural language inference. The approach proposed uses attention to decompose the problem into sub-problems that can be solved separately, thus making it trivially parallelizable. On the Stanford Natural Language Inference (SNLI) dataset, the decomposable attention model churns out state-of-the-art results with almost an order of magnitude fewer parameters than previous work and without relying on any word-order information. Adding intra-sentence attention that takes a minimum amount of order into account yields further improvements.
 
-<img src="https://www.mdpi.com/information/information-11-00421/article_deploy/html/images/information-11-00421-g007.png" width="360">
+<img src="https://www.pngitem.com/pimgs/m/578-5787448_decomposable-attention-model-for-natural-language-inference-hd.png" width="360">
 
-The model proposed can successfully identify salient signals such as n-gram and n-term matchings by resembling the compositional hierarchies of patterns in image recognition.
+#### Reference
+1. Ankur P. Parikh, Oscar Täckström, Dipanjan Das, Jakob Uszkoreit. 2016. "A Decomposable Attention Model for Natural Language Inference". Proceeedings of EMNLP 2016
+2. https://nlp.stanford.edu/projects/snli
+3. https://huggingface.co/transformers/index.html
+4. https://www.pngitem.com/middle/TibbRTm_decomposable-attention-model-for-natural-language-inference-hd/
+4. https://www.tensorflow.org

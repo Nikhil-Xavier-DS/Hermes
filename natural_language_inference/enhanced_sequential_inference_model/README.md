@@ -1,6 +1,15 @@
-# Hermes - Deep Natural Language Processing Framework
-Hermes is a library built on top of TensorFlow 2 designed to provide simple, abstractions for natural language processing utilizing end to end deep learning models and aggressive modules. Hermes utilizes Resitual-LSTM (RLSTM), a LSTM variant that learns sequence effectively.  
+# [Enhanced Sequential Inference Model](https://github.com/Nikhil-Xavier-DS/Hermes/tree/master/natural_language_inference/enhanced_sequential_inference_model)
+The code is implemented based on the publication, [Enhanced LSTM for Natural Language Inference](https://arxiv.org/abs/1609.06038). 
+Reasoning and inference are central to human and artificial intelligence. Modeling inference in human language is very challenging. With the availability of large annotated data, it has recently become feasible to train neural network based inference models, which have shown to be very effective. The paper presents a new state-of-the-art model, achieving the accuracy of 88.6% on the Stanford Natural Language Inference Dataset. Unlike the previous top models that use very complicated network architectures, the proposed model first demonstrate that carefully designing sequential inference models based on chain LSTMs can outperform all previous models. 
 
-Natural language processing is a subfield of linguistics, computer science, and artificial intelligence concerned with the interactions between computers and human languages, in particular, programming computers to process and analyze large amounts of natural language data. Deep neural network-style machine learning methods are widespread in natural language processing and can achieve state-of-the-art results in many natural language tasks. 
+<img src="https://raw.githubusercontent.com/coetaur0/ESIM/master/esim.png" width="360">
 
-HERMES was the ancient Greek god of language. One of the cleverest and most mischievous of the Olympian gods, who invented the lyre!
+The paper also shows that by explicitly considering recursive architectures in both local inference modeling and inference composition, the model can achieve additional improvement. Particularly, incorporating syntactic parsing information, the model further improves the performance even when added to the already very strong model.
+
+#### Reference
+1. Qian Chen, Xiaodan Zhu, Zhenhua Ling, Si Wei, Hui Jiang, Diana Inkpen. 2017. "Enhanced LSTM for Natural Language Inference". Proceedings of ACL 2017
+2. https://nlp.stanford.edu/projects/snli
+3. https://huggingface.co/transformers/index.html
+4. https://www.pngitem.com/middle/TibbRTm_decomposable-attention-model-for-natural-language-inference-hd/
+5. https://www.tensorflow.org
+6. https://paperswithcode.com/paper/enhanced-lstm-for-natural-language-inference
