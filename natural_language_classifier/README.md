@@ -74,6 +74,8 @@ RoBERTa has the same architecture as BERT, but uses a byte-level BPE as a tokeni
 2. Colin Raffel, Daniel P. W. Ellis. 2016. "Feed-Forward Networks with Attention Can Solve Some Long-Term Memory Problems". In Proceedings of the Neural and Evolutionary Computing (cs.NE)
 3. Jacob Devlin, Ming-Wei Chang, Kenton Lee, Kristina Toutanova. 2019. "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding"
 4. Yinhan Liu, Myle Ott, Naman Goyal, Jingfei Du, Mandar Joshi, Danqi Chen, Omer Levy, Mike Lewis, Luke Zettlemoyer, Veselin Stoyanov. 2019. "RoBERTa: A Robustly Optimized BERT Pretraining Approach"
-5. https://pytorch.org/tutorials/intermediate/dynamic_quantization_bert_tutorial.html
-6. https://huggingface.co/transformers/index.html
-6. Git repository by zhedongzheng named tensorflow-nlp (https://github.com/zhedongzheng/tensorflow-nlp)
+5. Zhilin Yang, Zihang Dai, Yiming Yang, Jaime Carbonell, Ruslan Salakhutdinov, Quoc V. Le. 2020. "XLNet: Generalized Autoregressive Pretraining for Language Understanding"
+6. https://pytorch.org/tutorials/intermediate/dynamic_quantization_bert_tutorial.html
+7. https://huggingface.co/transformers/index.html
+8. Git repository: https://github.com/zhedongzheng/tensorflow-nlp
+9. https://www.tensorflow.org/
