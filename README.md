@@ -22,6 +22,15 @@ Some of the popular NLP tasks implemented in Hermes includes text classification
 >* RoBERTa based model for Sentence Inference 
 >* XLNet based model for Sentence Inference 
 
+### [Neural Machine Translation](https://github.com/Nikhil-Xavier-DS/Hermes/tree/master/neural_machine_translation)
+>* RNN based Encoder-Decoder Seq-Seq Model
+>* Bidirectional RNN based Encoder-Decoder Seq-Seq Model
+>* GRU based Encoder-Decoder Seq-Seq Model
+>* Bidirectional GRU based Encoder-Decoder Seq-Seq Model
+>* LSTM based Encoder-Decoder Seq-Seq Model
+>* Bidirectional LSTM based Encoder-Decoder Seq-Seq Model
+###### Dataset to be added
+
 ### [Spoken Language Understanding](https://github.com/Nikhil-Xavier-DS/Hermes/tree/master/spoken_language_understanding)
 ###### Work in Progress
 

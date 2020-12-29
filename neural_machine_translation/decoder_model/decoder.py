@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras import layers, Model
 from tensorflow.keras.layers import Layer, Dense, RNN, GRU, LSTM, Embedding
-from Hermes.neural_machine_translation.neural_translation_attention_model.attention_model.attention import BahdanauAttention
+from Hermes.neural_machine_translation.attention_model.attention import BahdanauAttention
 
 
 class RNNDecoder(Model):
