@@ -1,7 +1,6 @@
 **/data/embedding.npy
 **/data/glove.840B.300d.txt
 **/data/snli_data/snli_1.0_train.txt
-**/data/train.txt
 Hermes/natural_language_classifier/data/embedding.npy
 Hermes/natural_language_classifier/data/glove.840B.300d.txt
 Hermes/natural_language_inference/data/
