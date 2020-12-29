@@ -29,7 +29,7 @@ Some of the popular NLP tasks implemented in Hermes includes text classification
 >* Bidirectional GRU based Encoder-Decoder Seq-Seq Model
 >* LSTM based Encoder-Decoder Seq-Seq Model
 >* Bidirectional LSTM based Encoder-Decoder Seq-Seq Model
-###### Dataset to be added
+>* ##### Dataset to be added
 
 ### [Spoken Language Understanding](https://github.com/Nikhil-Xavier-DS/Hermes/tree/master/spoken_language_understanding)
 ###### Work in Progress
