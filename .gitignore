@@ -4,5 +4,7 @@
 **/__pycache__
 **/.gitignore
 **/.idea
+.idea
+.gitignore
 Hermes/.gitignore
 Hermes/.idea
