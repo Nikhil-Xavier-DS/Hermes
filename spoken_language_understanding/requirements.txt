@@ -1,0 +1,28 @@
+################################################################
+#
+# Python package requirements:
+#
+# If you are using Anaconda then you can install all required
+# Python packages by running the following commands in a shell:
+#
+#     conda create --name tf python=3
+#     source activate tf
+#     pip install -r requirements.txt
+#
+# Note that you have to edit this file to select whether you
+# want to install the CPU or GPU version of TensorFlow.
+#
+################################################################
+# Basic packages used in many of the tutorials.
+
+numpy
+scipy
+matplotlib
+scikit-learn
+
+################################################################
+# TensorFlow v.2.1 and above include both CPU and GPU versions.
+
+tensorflow
+
+################################################################

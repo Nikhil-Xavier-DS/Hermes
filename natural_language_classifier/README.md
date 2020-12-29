@@ -1,4 +1,5 @@
 # Natural Language Classification
+
 Text classification is the task of assigning a set of predefined categories to sentences. Text classification in Hermes deals with Sentiment analysis. Sentiment analysis  is a natural language processing technique used to interpret and classify emotions in subjective data. For sentiment analysis, the algorithms use IMDB dataset.
 
 IMDB is a dataset for binary sentiment classification containing substantially more data than previous benchmark datasets. It provides a set of 25,000 highly polar movie reviews for training, and 25,000 for testing. 

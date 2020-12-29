@@ -1,4 +1,5 @@
 # Natural Language Inference
+
 Natural language inference is the task of determining whether a “hypothesis” is true (entailment), false (contradiction), or undetermined (neutral) given a “premise”. For natural language inference, the algorithms use Standard Natural Language Inference (SNLI) dataset.
 
 The Stanford Natural Language Inference (SNLI) Corpus contains around 550k hypothesis/premise pairs. Models are evaluated based on accuracy. The SNLI corpus (version 1.0) is a collection of 570k human-written English sentence pairs manually labeled for balanced classification with the labels entailment, contradiction, and neutral, supporting the task of natural language inference (NLI), also known as recognizing textual entailment (RTE). The corpus serves both as a benchmark for evaluating representational systems for text, especially including those induced by representation learning methods, as well as a resource for developing NLP models of any kind.
