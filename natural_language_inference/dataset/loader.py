@@ -33,7 +33,7 @@ albert_tokenizer = AlbertTokenizer.from_pretrained('albert-base-v2',
                                                    lowercase=True,
                                                    add_special_tokens=True)
 
-roberta_tokenizer = RobertaTokenizer.from_pretrained('robert-base',
+roberta_tokenizer = RobertaTokenizer.from_pretrained('roberta-base',
                                                      lowercase=True,
                                                      add_special_tokens=True)
 
@@ -301,10 +301,14 @@ if __name__ == "__main__":
     with open('../data/glove.840B.300d.txt', encoding="utf-8") as f:
         count = 0
         for i, line in enumerate(f):
+            if i % 100000 == 0:
+                print('- At line {}'.format(i))
             line = line.rstrip()
             sp = line.split(' ')
             word, vec = sp[0], sp[1:]
             if word in word2idx:
                 count += 1
                 embedding[word2idx[word]] = np.asarray(vec, dtype='float32')
+
+    print("[%d / %d] words have found pre-trained values" % (count, len(word2idx)))
     np.save('../data/embedding.npy', embedding)

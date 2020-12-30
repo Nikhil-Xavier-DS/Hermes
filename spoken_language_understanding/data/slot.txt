@@ -1,0 +1,7 @@
+O
+B-fromloc.city_name
+B-depart_time.time
+I-depart_time.time
+B-toloc.city_name
+B-arrive_time.time
+B-arrive_time.period_of_day

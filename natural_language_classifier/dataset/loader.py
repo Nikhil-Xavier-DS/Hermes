@@ -31,7 +31,7 @@ albert_tokenizer = AlbertTokenizer.from_pretrained('albert-base-v2',
                                                    lowercase=True,
                                                    add_special_tokens=True)
 
-roberta_tokenizer = RobertaTokenizer.from_pretrained('robert-base',
+roberta_tokenizer = RobertaTokenizer.from_pretrained('roberta-base',
                                                      lowercase=True,
                                                      add_special_tokens=True)
 

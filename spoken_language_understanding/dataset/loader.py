@@ -33,7 +33,7 @@ albert_tokenizer = AlbertTokenizer.from_pretrained('albert-base-v2',
                                                    lowercase=True,
                                                    add_special_tokens=True)
 
-roberta_tokenizer = RobertaTokenizer.from_pretrained('robert-base',
+roberta_tokenizer = RobertaTokenizer.from_pretrained('roberta-base',
                                                      lowercase=True,
                                                      add_special_tokens=True)
 
@@ -211,17 +211,37 @@ def norm_weight(inp, out, scale=0.01):
 
 
 if __name__ == "__main__":
-    write_text('../data/snli_data/snli_1.0_train.txt', '../data/train.txt')
-    write_text('../data/snli_data/snli_1.0_test.txt', '../data/test.txt')
-
-    counter = Counter()
-    with open('../data/train.txt') as f:
+    counter_word = Counter()
+    counter_intent = Counter()
+    counter_slot = Counter()
+    with open('../data/atis_data/atis.train.w-intent.iob') as f:
         for line in f:
             line = line.rstrip()
-            label, sent1, sent2 = line.split('\t')
-            counter.update(sent1.split())
-            counter.update(sent2.split())
-    words = [w for w, freq in counter.most_common() if freq >= 3]
+            text, slot_intent = line.split('\t')
+            print(f"text: {text}")
+            print(f"slot_intent: {slot_intent}")
+            words = text.split()[1:-1]
+            words = ['<digit>' if str.isdigit(w) else w for w in words]
+            print(f"words: {words}")
+            slot_intent = slot_intent.split()
+            slots, intent = slot_intent[1:-1], slot_intent[-1]
+            print(f"slots: {slots}")
+            print(f"intent: {intent}")
+            counter_word.update(words)
+            counter_intent.update([intent])
+            counter_slot.update(slots)
+ 
+    def freq_func(x):
+        return [w for w, freq in x.most_common()]
+
+    words = ['<pad>'] + freq_func(counter_word)
+    intents = freq_func(counter_intent)
+    slots = freq_func(counter_slot)
+
+    for vocab_li, path in zip([words, intents, slots], ['../data/word.txt', '../data/intent.txt', '../data/slot.txt']):
+        with open(path, 'w') as f:
+            for w in vocab_li:
+                f.write(w + '\n')
 
     word2idx = dict()
     word2idx['<pad>'] = 0
