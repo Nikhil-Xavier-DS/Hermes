@@ -48,7 +48,6 @@ def write_file(f_path, xs, ys):
 
 def data_generator(f_path, params):
     with open(f_path, encoding="utf8") as f:
-        print('Reading', f_path)
         for line in f:
             line = line.rstrip()
             label, text = line.split('\t')
@@ -62,7 +61,6 @@ def data_generator(f_path, params):
 
 def char_data_generator(f_path, params):
     with open(f_path, encoding="utf8") as f:
-        print('Reading', f_path)
         for line in f:
             line = line.rstrip()
             label, text = line.split('\t')
@@ -89,7 +87,6 @@ def char_data_generator(f_path, params):
 def bert_data_generator(f_paths, params):
     for f_path in f_paths:
         with open(f_path) as f:
-            print('Reading', f_path)
             for line in f:
                 line = line.rstrip()
                 label, text = line.split('\t')
@@ -106,7 +103,6 @@ def bert_data_generator(f_paths, params):
 def albert_data_generator(f_paths, params):
     for f_path in f_paths:
         with open(f_path) as f:
-            print('Reading', f_path)
             for line in f:
                 line = line.rstrip()
                 label, text = line.split('\t')
@@ -123,7 +119,6 @@ def albert_data_generator(f_paths, params):
 def roberta_data_generator(f_paths, params):
     for f_path in f_paths:
         with open(f_path) as f:
-            print('Reading', f_path)
             for line in f:
                 line = line.rstrip()
                 label, text = line.split('\t')
@@ -140,7 +135,6 @@ def roberta_data_generator(f_paths, params):
 def xlnet_data_generator(f_paths, params):
     for f_path in f_paths:
         with open(f_path) as f:
-            print('Reading', f_path)
             for line in f:
                 line = line.rstrip()
                 label, text = line.split('\t')

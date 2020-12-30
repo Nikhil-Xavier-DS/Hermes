@@ -45,7 +45,6 @@ xlnet_tokenizer = XLNetTokenizer.from_pretrained('xlnet-base-cased',
 def data_generator(f_path, params):
     label2idx = {'neutral': 0, 'entailment': 1, 'contradiction': 2}
     with open(f_path) as f:
-        print('Reading', f_path)
         for line in f:
             line = line.rstrip()
             label, text1, text2 = line.split('\t')
@@ -60,7 +59,6 @@ def bert_data_generator(f_paths, params):
     label2idx = {'neutral': 0, 'entailment': 1, 'contradiction': 2}
     for f_path in f_paths:
         with open(f_path) as f:
-            print('Reading', f_path)
             for line in f:
                 line = line.rstrip()
                 label, text1, text2 = line.split('\t')
@@ -83,7 +81,6 @@ def albert_data_generator(f_paths, params):
     label2idx = {'neutral': 0, 'entailment': 1, 'contradiction': 2}
     for f_path in f_paths:
         with open(f_path) as f:
-            print('Reading', f_path)
             for line in f:
                 line = line.rstrip()
                 label, text1, text2 = line.split('\t')
@@ -106,7 +103,6 @@ def xlnet_data_generator(f_paths, params):
     label2idx = {'neutral': 0, 'entailment': 1, 'contradiction': 2}
     for f_path in f_paths:
         with open(f_path) as f:
-            print('Reading', f_path)
             for line in f:
                 line = line.rstrip()
                 label, text1, text2 = line.split('\t')
@@ -129,7 +125,6 @@ def roberta_data_generator(f_paths, params):
     label2idx = {'neutral': 0, 'entailment': 1, 'contradiction': 2}
     for f_path in f_paths:
         with open(f_path) as f:
-            print('Reading', f_path)
             for line in f:
                 line = line.rstrip()
                 label, text1, text2 = line.split('\t')

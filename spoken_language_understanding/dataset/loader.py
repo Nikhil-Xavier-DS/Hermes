@@ -43,17 +43,17 @@ xlnet_tokenizer = XLNetTokenizer.from_pretrained('xlnet-base-cased',
 
 
 def data_generator(f_path, params):
-    label2idx = {'neutral': 0, 'entailment': 1, 'contradiction': 2}
     with open(f_path) as f:
-        print('Reading', f_path)
         for line in f:
             line = line.rstrip()
-            label, text1, text2 = line.split('\t')
-            if label == '-':
-                continue
-            text1 = [params['word2idx'].get(w, len(params['word2idx'])) for w in text1]
-            text2 = [params['word2idx'].get(w, len(params['word2idx'])) for w in text2]
-            yield (text1, text2), label2idx[label]
+            text, slot_intent = line.split('\t')
+            words = text.split()[1:-1]
+            slot_intent = slot_intent.split()
+            slots, intent = slot_intent[1:-1], slot_intent[-1]
+            words = [params['word2idx'].get(w, len(params['word2idx'])) for w in words]
+            intent = params['intent2idx'].get(intent, len(params['intent2idx']))
+            slots = [params['slot2idx'].get(s, len(params['slot2idx'])) for s in slots]
+            yield words, (intent, slots)
 
 
 def bert_data_generator(f_paths, params):
@@ -79,41 +79,27 @@ def bert_data_generator(f_paths, params):
                 yield text, seg, y
 
 
-
 def dataset(is_training, params):
+    _shapes = ([None], ((), [None]))
+    _types = (tf.int32, (tf.int32, tf.int32))
+    _pads = (0, (-1, 0))
+
     if is_training:
         ds = tf.data.Dataset.from_generator(
-            lambda: data_generator(params['train_path'], params['word2idx']),
-            output_shapes=(([None], [None]), ()),
-            output_types=((tf.int32, tf.int32), tf.int32))
-        ds = ds.shuffle(params['buffer_size'])
-        ds = ds.padded_batch(params['batch_size'], padded_shapes=(([None], [None]), ()), padding_values=((0, 0), -1))
+            lambda: data_generator(params['train_path'], params),
+            output_shapes=([None], ((), [None])),
+            output_types=(tf.int32, (tf.int32, tf.int32)))
+        ds = ds.shuffle(params['num_samples'])
+        ds = ds.padded_batch(params['batch_size'], ([None], ((), [None])), (0, (-1, 0)))
+        ds = ds.prefetch(tf.data.experimental.AUTOTUNE)
     else:
         ds = tf.data.Dataset.from_generator(
-            lambda: data_generator(params['test_path'], params['word2idx']),
-            output_shapes=(([None], [None]), ()),
-            output_types=((tf.int32, tf.int32), tf.int32))
-        ds = ds.padded_batch(params['batch_size'], padded_shapes=(([None], [None]), ()), padding_values=((0, 0), -1))
+            lambda: data_generator(params['test_path'], params),
+            output_shapes=([None], ((), [None])),
+            output_types=(tf.int32, (tf.int32, tf.int32)))
+        ds = ds.padded_batch(params['batch_size'], ([None], ((), [None])), (0, (-1, 0)))
+        ds = ds.prefetch(tf.data.experimental.AUTOTUNE)
     return ds
-
-
-def albert_dataset(is_train, params):
-    if is_train:
-        data = tf.data.Dataset.from_generator(lambda: albert_data_generator(params['train_path'], params),
-                                              output_shapes=([None], [None], ()),
-                                              output_types=(tf.int32, tf.int32, tf.int32))
-        data = data.shuffle(params['num_samples'])
-        data = data.padded_batch(params['batch_size'], ([None], [None], ()), (0, 0, -1))
-        data = data.prefetch(tf.data.experimental.AUTOTUNE)
-    else:
-        data = tf.data.Dataset.from_generator(lambda: albert_data_generator(params['test_path'], params),
-                                              output_shapes=([None], [None], ()),
-                                              output_types=(tf.int32, tf.int32, tf.int32))
-        data = data.shuffle(params['num_samples'])
-        data = data.padded_batch(params['batch_size'], ([None], [None], ()), (0, 0, -1))
-        data = data.prefetch(tf.data.experimental.AUTOTUNE)
-    return data
-
 
 def bert_dataset(is_train, params):
     if is_train:
@@ -125,42 +111,6 @@ def bert_dataset(is_train, params):
         data = data.prefetch(tf.data.experimental.AUTOTUNE)
     else:
         data = tf.data.Dataset.from_generator(lambda: bert_data_generator(params['test_path'], params),
-                                              output_shapes=([None], [None], ()),
-                                              output_types=(tf.int32, tf.int32, tf.int32))
-        data = data.shuffle(params['num_samples'])
-        data = data.padded_batch(params['batch_size'], ([None], [None], ()), (0, 0, -1))
-        data = data.prefetch(tf.data.experimental.AUTOTUNE)
-    return data
-
-
-def roberta_dataset(is_train, params):
-    if is_train:
-        data = tf.data.Dataset.from_generator(lambda: roberta_data_generator(params['train_path'], params),
-                                              output_shapes=([None], [None], ()),
-                                              output_types=(tf.int32, tf.int32, tf.int32))
-        data = data.shuffle(params['num_samples'])
-        data = data.padded_batch(params['batch_size'], ([None], [None], ()), (0, 0, -1))
-        data = data.prefetch(tf.data.experimental.AUTOTUNE)
-    else:
-        data = tf.data.Dataset.from_generator(lambda: roberta_data_generator(params['test_path'], params),
-                                              output_shapes=([None], [None], ()),
-                                              output_types=(tf.int32, tf.int32, tf.int32))
-        data = data.shuffle(params['num_samples'])
-        data = data.padded_batch(params['batch_size'], ([None], [None], ()), (0, 0, -1))
-        data = data.prefetch(tf.data.experimental.AUTOTUNE)
-    return data
-
-
-def xlnet_dataset(is_train, params):
-    if is_train:
-        data = tf.data.Dataset.from_generator(lambda: xlnet_data_generator(params['train_path'], params),
-                                              output_shapes=([None], [None], ()),
-                                              output_types=(tf.int32, tf.int32, tf.int32))
-        data = data.shuffle(params['num_samples'])
-        data = data.padded_batch(params['batch_size'], ([None], [None], ()), (0, 0, -1))
-        data = data.prefetch(tf.data.experimental.AUTOTUNE)
-    else:
-        data = tf.data.Dataset.from_generator(lambda: xlnet_data_generator(params['test_path'], params),
                                               output_shapes=([None], [None], ()),
                                               output_types=(tf.int32, tf.int32, tf.int32))
         data = data.shuffle(params['num_samples'])
@@ -230,9 +180,11 @@ if __name__ == "__main__":
             counter_word.update(words)
             counter_intent.update([intent])
             counter_slot.update(slots)
- 
+
+
     def freq_func(x):
         return [w for w, freq in x.most_common()]
+
 
     words = ['<pad>'] + freq_func(counter_word)
     intents = freq_func(counter_intent)
