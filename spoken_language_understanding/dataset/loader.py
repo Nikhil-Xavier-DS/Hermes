@@ -101,6 +101,7 @@ def dataset(is_training, params):
         ds = ds.prefetch(tf.data.experimental.AUTOTUNE)
     return ds
 
+
 def bert_dataset(is_train, params):
     if is_train:
         data = tf.data.Dataset.from_generator(lambda: bert_data_generator(params['train_path'], params),
@@ -117,47 +118,6 @@ def bert_dataset(is_train, params):
         data = data.padded_batch(params['batch_size'], ([None], [None], ()), (0, 0, -1))
         data = data.prefetch(tf.data.experimental.AUTOTUNE)
     return data
-
-
-def normalize(x):
-    x = x.lower()
-    x = x.replace('.', '')
-    x = x.replace(',', '')
-    x = x.replace(';', '')
-    x = x.replace('!', '')
-    x = x.replace('#', '')
-    x = x.replace('(', '')
-    x = x.replace(')', '')
-    x = x.replace(':', '')
-    x = x.replace('%', '')
-    x = x.replace('&', '')
-    x = x.replace('$', '')
-    x = x.replace('?', '')
-    x = x.replace('"', '')
-    x = x.replace('/', ' ')
-    x = x.replace('-', ' ')
-    x = x.replace("n't", " n't ")
-    x = x.replace("'", " ' ")
-    x = re.sub(r'\d+', ' <num> ', x)
-    x = re.sub(r'\s+', ' ', x)
-    return x
-
-
-def write_text(in_path, out_path):
-    with open(in_path) as f_in, open(out_path, 'w') as f_out:
-        f_in.readline()
-        for line in f_in:
-            line = line.rstrip()
-            sp = line.split('\t')
-            label, sent1, sent2 = sp[0], sp[5], sp[6]
-            sent1 = normalize(sent1)
-            sent2 = normalize(sent2)
-            f_out.write(label + '\t' + sent1 + '\t' + sent2 + '\n')
-
-
-def norm_weight(inp, out, scale=0.01):
-    W = scale * np.random.randn(inp, out)
-    return W.astype(np.float32)
 
 
 if __name__ == "__main__":
