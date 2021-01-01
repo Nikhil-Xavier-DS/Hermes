@@ -26,11 +26,12 @@ print("TensorFlow Version", tf.__version__)
 print('GPU Enabled:', tf.test.is_gpu_available())
 
 params = {
-    'train_path': '../data/train.txt',
-    'test_path': '../data/test.txt',
-    'num_samples': 25000,
+    'train_path': '../data/atis_data/atis.train.w-intent.iob',
+    'test_path': '../data/atis_data/atis.test.w-intent.iob',
+    'word_path': '../data/word.txt',
+    'intent_path': '../data/intent.txt',
+    'slot_path': '../data/slot.txt',
     'units': 300,
-    'num_labels': 3,
     'batch_size': 32,
     'max_len': 1000,
     'dropout_rate': 0.2,
@@ -47,34 +48,52 @@ params = {
 }
 
 if __name__ == "__main__":
-    _word2idx = tf.keras.datasets.imdb.get_word_index()
-    word2idx = {w: i+3 for w, i in _word2idx.items()}
-    word2idx['<pad>'] = 0
-    word2idx['<start>'] = 1
-    word2idx['<unk>'] = 2
+    word2idx = {}
+    with open(params['word_path']) as f:
+        for i, line in enumerate(f):
+            line = line.rstrip()
+            word2idx[line] = i
+    params['word2idx'] = word2idx
+
+    intent2idx = {}
+    with open(params['intent_path']) as f:
+        for i, line in enumerate(f):
+            line = line.rstrip()
+            intent2idx[line] = i
+    params['intent2idx'] = intent2idx
+
+    slot2idx = {}
+    with open(params['slot_path']) as f:
+        for i, line in enumerate(f):
+            line = line.rstrip()
+            slot2idx[line] = i
+    params['slot2idx'] = slot2idx
+
+    params['word_size'] = len(params['word2idx']) + 1
+    params['intent_size'] = len(params['intent2idx']) + 1
+    params['slot_size'] = len(params['slot2idx']) + 1
+
     idx2word = {i: w for w, i in word2idx.items()}
     params['word2idx'] = word2idx
     params['idx2word'] = idx2word
     params['vocab_size'] = len(word2idx) + 1
-    model = DecomposableAttentionModel(params['lr'], params['dropout_rate'], params['units'])
+    model = BLSTMModel(params['intent_size'], params['slot_size'], params['lr'], params['dropout_rate'], params['units'])
     data = dataset(is_train=1, params=params)
 
-    for x, y in data:
-        print("Input shape: {}, {}".format(len(x), len(x[0])))
-        print("Target shape: {}".format(len(y)))
-        out = model(x)
-        print("Output shape: {}".format(out.shape))
+    for words, (intent, slots) in data:
+        print("Input shape: {}, {}".format(len(words), len(words[0])))
+        y_intent, y_slots = model(words)
         print("Model Output")
-        print(out)
+        print("Intent shape: {}".format(y_intent.shape))
+        print("Slots shape: {}".format(y_slots.shape))
         print('\n')
         break
 
     print("Fitting model")
     model.fit(data, epochs=2)
-    model.save("decomposable_attention_model.h5")
+    model.save("bidirectional_lstm_model.h5")
 
     print("Evaluate model")
-    model = tf.keras.models.load_model("decomposable_attention_model.h5")
-
+    model = tf.keras.models.load_model("bidirectional_lstm_model.h5")
     data = dataset(is_train=0, params=params)
     model.evaluate(data)

@@ -159,7 +159,7 @@ class BLSTMModel(Model):
         self.slot_accuracy.reset_states()
         self.intent_accuracy.reset_states()
         for words, (intent, slots) in data:
-            y_intent, y_slots = self(words, training=True)
+            y_intent, y_slots = self(words, training=False)
             y_intent = tf.argmax(y_intent, -1)
             y_slots = tf.argmax(y_slots, -1)
             self.intent_accuracy.update_state(y_true=intent, y_pred=y_intent)
