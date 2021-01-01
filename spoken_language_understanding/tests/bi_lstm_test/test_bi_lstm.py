@@ -13,13 +13,13 @@
 # limitations under the License.
 # ==============================================================================
 
-"""Test case for BERT (Bidirectional Encoder Representations from Transformers) model for Natural Language Inference."""
+"""Test case for Bidirectional LSTM Model for Spoken Language Understanding"""
 
 import tensorflow as tf
 import os
-from Hermes.natural_language_inference.bert_model.bert import XLNetInference
-from Hermes.natural_language_inference.dataset.loader import xlnet_dataset
-from tensorflow.keras.optimizers import Adam
+
+from Hermes.spoken_language_understanding.bi_lstm_model.bi_lstm import BLSTMModel
+from Hermes.spoken_language_understanding.dataset.loader import dataset
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 print("TensorFlow Version", tf.__version__)
@@ -29,7 +29,8 @@ params = {
     'train_path': '../data/train.txt',
     'test_path': '../data/test.txt',
     'num_samples': 25000,
-    'num_labels': 2,
+    'units': 300,
+    'num_labels': 3,
     'batch_size': 32,
     'max_len': 1000,
     'dropout_rate': 0.2,
@@ -46,13 +47,22 @@ params = {
 }
 
 if __name__ == "__main__":
-    model = XLNetInference(params['dropout_rate'], params['units'])
-    data = xlnet_dataset(is_train=1, params=params)
+    _word2idx = tf.keras.datasets.imdb.get_word_index()
+    word2idx = {w: i+3 for w, i in _word2idx.items()}
+    word2idx['<pad>'] = 0
+    word2idx['<start>'] = 1
+    word2idx['<unk>'] = 2
+    idx2word = {i: w for w, i in word2idx.items()}
+    params['word2idx'] = word2idx
+    params['idx2word'] = idx2word
+    params['vocab_size'] = len(word2idx) + 1
+    model = DecomposableAttentionModel(params['lr'], params['dropout_rate'], params['units'])
+    data = dataset(is_train=1, params=params)
 
-    for x1, x2, y in data:
+    for x, y in data:
         print("Input shape: {}, {}".format(len(x), len(x[0])))
         print("Target shape: {}".format(len(y)))
-        out = model((x1, x2))
+        out = model(x)
         print("Output shape: {}".format(out.shape))
         print("Model Output")
         print(out)
@@ -60,12 +70,11 @@ if __name__ == "__main__":
         break
 
     print("Fitting model")
-    model.compile(optimizer=Adam(params['lr']), loss=tf.keras.losses.CategoricalCrossentropy(label_smoothing=.2))
     model.fit(data, epochs=2)
-    model.save("bert_model.h5")
+    model.save("decomposable_attention_model.h5")
 
     print("Evaluate model")
-    model = tf.keras.models.load_model("xlnet_model.h5")
+    model = tf.keras.models.load_model("decomposable_attention_model.h5")
 
-    data = xlnet_dataset(is_train=0, params=params)
+    data = dataset(is_train=0, params=params)
     model.evaluate(data)

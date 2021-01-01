@@ -14,14 +14,13 @@
 # ==============================================================================
 
 """A Decomposable Attention Model for Natural Language Inference"""
-
 import tensorflow as tf
 import time
 import logging
 import numpy as np
 
 from tensorflow.keras import Model
-from tensorflow.keras.layers import Dense, Dropout
+from tensorflow.keras.layers import Bidirectional, Dense, Dropout, LSTM
 from tensorflow.keras.optimizers import Adam
 
 
@@ -84,83 +83,66 @@ class SoftAlignAttention(Model):
         return tf.matmul(align, x)
 
 
-class DecomposableAttentionModel(Model):
+class BLSTMModel(Model):
     EPOCHS = 1
     logger = logging.getLogger('tensorflow')
     logger.setLevel(logging.INFO)
 
-    def __init__(self, lr=1e-4, dropout_rate=0.2, units=300):
+    def __init__(self, intent_size, slot_size, lr=1e-4, dropout_rate=0.2, units=300):
         super().__init__()
         self.embedding = tf.Variable(np.load('../data/embedding.npy'),
                                      dtype=tf.float32,
-                                     name='pretrained_embedding',
                                      trainable=False)
-        self.attentive_pooling = KernelAttentivePooling(dropout_rate)
-        self.attend_transform = FCBlock(dropout_rate, units)
-        self.compare_transform = FCBlock(dropout_rate, units)
-        self.aggregate_transform = FCBlock(dropout_rate, units)
-        self.soft_align_attention = SoftAlignAttention()
-        self.out_linear = Dense(3)
+        self.inp_dropout = Dropout(dropout_rate)
+        self.blstm = Bidirectional(LSTM(units,
+                                        return_state=True,
+                                        return_sequences=True))
+        self.intent_dropout = Dropout(dropout_rate)
+        self.fc_intent = Dense(units, activation='relu')
+        self.trans_params = self.add_weight(shape=(slot_size, slot_size))
+        self.out_linear_intent = Dense(intent_size)
+        self.out_linear_slot = Dense(slot_size)
         self.optimizer = Adam(lr)
-        self.accuracy = tf.keras.metrics.Accuracy()
+        self.slots_accuracy = tf.keras.metrics.Accuracy()
+        self.intent_accuracy = tf.keras.metrics.Accuracy()
         self.decay_lr = tf.optimizers.schedules.ExponentialDecay(lr, 1000, 0.95)
         self.logger = logging.getLogger('tensorflow')
         self.logger.setLevel(logging.INFO)
 
-    def call(self, inputs, training=False, **args):
-        super().call(**args)
-        x1, x2 = inputs
-        if x1.dtype != tf.int32:
-            x1 = tf.cast(x1, tf.int32)
-        if x2.dtype != tf.int32:
-            x2 = tf.cast(x2, tf.int32)
-        mask1 = tf.sign(x1)
-        mask2 = tf.sign(x2)
-        x1 = tf.nn.embedding_lookup(self.embedding, x1)
-        x2 = tf.nn.embedding_lookup(self.embedding, x2)
-        x1_coef, x2_coef = self.attend(x1, x2, mask1, mask2, training)
-        x1 = self.compare(x1, x1_coef, training)
-        x2 = self.compare(x2, x2_coef, training)
-        x = self.aggregate(x1, x2, mask1, mask2, training)
-        x = self.out_linear(x)
-        return x
-
-    def attend(self, x1, x2, mask1, mask2, training):
-        x1 = self.attend_transform(x1, training=training)
-        x2 = self.attend_transform(x2, training=training)
-        return self.soft_align_attention(x1, x2, mask1, mask2)
-
-    def compare(self, x, x_coef, training):
-        def func(x, x_coef):
-            return tf.concat((x,
-                              x_coef,
-                              (x - x_coef),
-                              (x * x_coef)), -1)
-
-        x = func(x, x_coef)
-        x = self.compare_transform(x, training=training)
-        return x
-
-    def aggregate(self, x1, x2, mask1, mask2, training):
-        features = [tf.reduce_max(x1, axis=1),
-                    tf.reduce_max(x2, axis=1),
-                    self.attentive_pooling((x1, mask1), training),
-                    self.attentive_pooling((x2, mask2), training)]
-        x = tf.concat(features, axis=-1)
-        x = self.aggregate_transform(x, training)
-        return x
+    def call(self, inputs, training=False):
+        if inputs.dtype != tf.int32:
+            inputs = tf.cast(inputs, tf.int32)
+        mask = tf.sign(inputs)
+        mask = tf.cast(mask, tf.bool)
+        x = tf.nn.embedding_lookup(self.embedding, inputs)
+        x = self.inp_dropout(x, training=training)
+        x, h_state_f, _, h_state_b, _ = self.blstm(x, mask=mask)
+        x_intent = tf.concat([tf.reduce_max(x, 1), h_state_f, h_state_b], -1)
+        x_intent = self.intent_dropout(x_intent, training=training)
+        x_intent = self.out_linear_intent(self.fc_intent(x_intent))
+        x_slot = self.out_linear_slot(x)
+        return x_intent, x_slot
 
     def fit(self, data, epochs=EPOCHS):
         t0 = time.time()
         step = 0
         epoch = 1
         while epoch <= epochs:
-            for ((text1, text2), labels) in data:
+            for words, (intent, slots) in data:
                 with tf.GradientTape() as tape:
-                    logits = self((text1, text2), training=True)
-                    loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(labels=labels,
-                                                                                         logits=logits,
-                                                                                         label_smoothing=.2, ))
+                    y_intent, y_slots = self(words, training=True)
+                    loss_intent = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(labels=intent,
+                                                                                                logits=y_intent,
+                                                                                                label_smoothing=.2, ))
+                    weights = tf.cast(tf.sign(slots), tf.float32)
+                    padding = tf.constant(1e-2, tf.float32, weights.shape)
+                    weights = tf.where(tf.equal(weights, 0.), padding, weights)
+                    weights = tf.cast(weights, tf.float32)
+                    loss_slots = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(labels=intent,
+                                                                                               logits=y_intent,
+                                                                                               weights=weights,
+                                                                                               label_smoothing=.2, ))
+                    loss = loss_intent + loss_slots
                 self.optimizer.lr.assign(self.decay_lr(step))
                 grads = tape.gradient(loss, self.trainable_variables)
                 grads, _ = tf.clip_by_global_norm(grads, 5.)
@@ -174,12 +156,17 @@ class DecomposableAttentionModel(Model):
         return True
 
     def evaluate(self, data):
-        self.accuracy.reset_states()
-        for ((text1, text2), labels)  in data:
-            logits = self((text1, text2), training=False)
-            y_pred = tf.argmax(logits, axis=-1)
-            self.accuracy.update_state(y_true=labels, y_pred=y_pred)
+        self.slot_accuracy.reset_states()
+        self.intent_accuracy.reset_states()
+        for words, (intent, slots) in data:
+            y_intent, y_slots = self(words, training=True)
+            y_intent = tf.argmax(y_intent, -1)
+            y_slots = tf.argmax(y_slots, -1)
+            self.intent_accuracy.update_state(y_true=intent, y_pred=y_intent)
+            self.slots_accuracy.update_state(y_true=slots, y_pred=y_slots)
 
-        accuracy = self.accuracy.result().numpy()
-        self.logger.info("Evaluation Accuracy: {:.3f}".format(accuracy))
-        self.logger.info("Accuracy: {:.3f}".format(accuracy))
+        intent_accuracy = self.intent_accuracy.result().numpy()
+        slots_accuracy = self.slots_accuracy.result().numpy()
+        self.logger.info("Evaluation Accuracy (intent): {:.3f}".format(intent_accuracy))
+        self.logger.info("Evaluation Accuracy (slots): {:.3f}".format(slots_accuracy))
+

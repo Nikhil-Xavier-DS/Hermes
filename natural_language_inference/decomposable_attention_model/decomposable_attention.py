@@ -182,4 +182,3 @@ class DecomposableAttentionModel(Model):
 
         accuracy = self.accuracy.result().numpy()
         self.logger.info("Evaluation Accuracy: {:.3f}".format(accuracy))
-        self.logger.info("Accuracy: {:.3f}".format(accuracy))

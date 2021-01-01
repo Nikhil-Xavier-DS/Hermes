@@ -47,11 +47,11 @@ params = {
 }
 
 if __name__ == "__main__":
-    _word2idx = tf.keras.datasets.imdb.get_word_index()
-    word2idx = {w: i+3 for w, i in _word2idx.items()}
-    word2idx['<pad>'] = 0
-    word2idx['<start>'] = 1
-    word2idx['<unk>'] = 2
+    word2idx = {}
+    with open(params["'train_path'"]) as f:
+        for i, line in enumerate(f):
+            line = line.rstrip()
+            word2idx[line] = i
     idx2word = {i: w for w, i in word2idx.items()}
     params['word2idx'] = word2idx
     params['idx2word'] = idx2word
