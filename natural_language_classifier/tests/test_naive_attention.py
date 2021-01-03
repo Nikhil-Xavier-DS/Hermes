@@ -26,7 +26,6 @@ print("TensorFlow Version", tf.__version__)
 print('GPU Enabled:', tf.test.is_gpu_available())
 
 params = {
-    # 'vocab_path': '../data/word.txt',
     'train_path': '../data/train.txt',
     'test_path': '../data/test.txt',
     'num_samples': 25000,
