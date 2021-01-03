@@ -14,3 +14,8 @@ Some of the popular neural machine translation algorithms implemented in Hermes 
 >* LSTM based Encoder-Decoder Seq-Seq Model
 >* Bidirectional LSTM based Encoder-Decoder Seq-Seq Model
 > ##### Dataset to be added
+
+
+#### Reference
+1. https://www.tensorflow.org
+2. https://github.com/yvchen/JointSLU/tree/master/data

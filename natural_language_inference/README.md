@@ -74,6 +74,7 @@ With the capability of modeling bidirectional contexts, denoising autoencoding b
 
 Due to the difficulty of training a fully auto-regressive model over various factorization order, XLNet is pretrained using only a sub-set of the output tokens as target which are selected. XLNet is one of the few models that has no sequence length limit.
 
+
 #### Reference
 1. Liang Pang, Yanyan Lan, Jiafeng Guo, Jun Xu, Shengxian Wan, Xueqi Cheng. 2016. "Text Matching as Image Recognition"
 2. Ankur P. Parikh, Oscar Täckström, Dipanjan Das, Jakob Uszkoreit. 2016. "A Decomposable Attention Model for Natural Language Inference". Proceeedings of EMNLP 2016
