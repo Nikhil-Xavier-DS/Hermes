@@ -1,12 +1,13 @@
-# [Decomposable Attention based Natural Language Inference Model](https://github.com/Nikhil-Xavier-DS/Hermes/tree/master/natural_language_inference/decomposable_attention_model)
-The code is implemented based on the publication, [A Decomposable Attention Model for Natural Language Inference](https://arxiv.org/abs/1606.01933). 
-The paper proposes a simple neural architecture for natural language inference. The approach proposed uses attention to decompose the problem into sub-problems that can be solved separately, thus making it trivially parallelizable. On the Stanford Natural Language Inference (SNLI) dataset, the decomposable attention model churns out state-of-the-art results with almost an order of magnitude fewer parameters than previous work and without relying on any word-order information. Adding intra-sentence attention that takes a minimum amount of order into account yields further improvements.
+# [Transformer based Spoken Language Understanding Model](https://github.com/Nikhil-Xavier-DS/Hermes/tree/master/spoken_language_understanding/transformer_model)
+The code is implemented based on the publication, [Attention Is All You Need](https://arxiv.org/abs/1706.03762). 
+The dominant sequence transduction models are based on complex recurrent or convolutional neural networks in an encoder-decoder configuration. The best performing models also connect the encoder and decoder through an attention mechanism. The publication proposes a new simple network architecture, the Transformer, based solely on attention mechanisms, dispensing with recurrence and convolutions entirely. 
 
-<img src="https://www.pngitem.com/pimgs/m/578-5787448_decomposable-attention-model-for-natural-language-inference-hd.png" width="360">
+<img src="https://hub.packtpub.com/wp-content/uploads/2018/04/Attention.png" width="360">
 
 #### Reference
-1. Ankur P. Parikh, Oscar Täckström, Dipanjan Das, Jakob Uszkoreit. 2016. "A Decomposable Attention Model for Natural Language Inference". Proceeedings of EMNLP 2016
-2. https://nlp.stanford.edu/projects/snli
-3. https://huggingface.co/transformers/index.html
-4. https://www.pngitem.com/middle/TibbRTm_decomposable-attention-model-for-natural-language-inference-hd/
-4. https://www.tensorflow.org
+1. Xiaodong Zhang and Houfeng Wang. 2016. "A Joint Model of Intent Determination and Slot Filling for Spoken Language Understanding". Proceedings of the Twenty-Fifth International Joint Conference on Artificial Intelligence (IJCAI-16)
+2. Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Lukasz Kaiser, Illia Polosukhin. 2017. "Attention Is All You Need". Proceeedings of EMNLP 2016
+3. https://www.microsoft.com/en-us/research/project/spoken-language-understanding/
+5. Git repository: https://github.com/zhedongzheng/tensorflow-nlp
+6. https://www.tensorflow.org
+7. https://github.com/yvchen/JointSLU/tree/master/data
