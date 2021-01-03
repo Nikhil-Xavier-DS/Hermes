@@ -1,6 +1,16 @@
-# Hermes - Deep Natural Language Processing Framework
-Hermes is a library built on top of TensorFlow 2 designed to provide simple, abstractions for natural language processing utilizing end to end deep learning models and aggressive modules. Hermes utilizes Resitual-LSTM (RLSTM), a LSTM variant that learns sequence effectively.  
+# Natural Machine Translation
 
-Natural language processing is a subfield of linguistics, computer science, and artificial intelligence concerned with the interactions between computers and human languages, in particular, programming computers to process and analyze large amounts of natural language data. Deep neural network-style machine learning methods are widespread in natural language processing and can achieve state-of-the-art results in many natural language tasks. 
+Neural machine translation (NMT) is an approach to machine translation that uses an artificial neural network to predict the likelihood of a sequence of words, typically modeling entire sentences in a single integrated model.
 
-HERMES was the ancient Greek god of language. One of the cleverest and most mischievous of the Olympian gods, who invented the lyre!
+The basic idea behind Sequence to Sequence Model is the encoder-decoder architecture. These networks are usually used for a variety of tasks like text-summerization, Machine translation, Image Captioning, etc.
+
+Some of the popular neural machine translation algorithms implemented in Hermes are explained in brief below.
+
+### [Neural Machine Translation](https://github.com/Nikhil-Xavier-DS/Hermes/tree/master/neural_machine_translation)
+>* RNN based Encoder-Decoder Seq-Seq Model
+>* Bidirectional RNN based Encoder-Decoder Seq-Seq Model
+>* GRU based Encoder-Decoder Seq-Seq Model
+>* Bidirectional GRU based Encoder-Decoder Seq-Seq Model
+>* LSTM based Encoder-Decoder Seq-Seq Model
+>* Bidirectional LSTM based Encoder-Decoder Seq-Seq Model
+> ##### Dataset to be added
