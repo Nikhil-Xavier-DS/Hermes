@@ -26,7 +26,7 @@ Two major tasks in spoken language understanding (SLU) are intent determination 
 
 <img src="https://d3i71xaburhd42.cloudfront.net/1f9e2d6df1eaaf04aebf428d9fa9a9ffc89e373c/3-Figure1-1.png" width="360">
 
-hj
+
 #### Reference
 1. Xiaodong Zhang and Houfeng Wang. 2016. "A Joint Model of Intent Determination and Slot Filling for Spoken Language Understanding". Proceedings of the Twenty-Fifth International Joint Conference on Artificial Intelligence (IJCAI-16)
 2. Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Lukasz Kaiser, Illia Polosukhin. 2017. "Attention Is All You Need". Proceeedings of EMNLP 2016
