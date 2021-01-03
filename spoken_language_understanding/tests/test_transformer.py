@@ -13,12 +13,12 @@
 # limitations under the License.
 # ==============================================================================
 
-"""Test case for Bidirectional LSTM Model for Spoken Language Understanding"""
+"""Test case for Transformer Model for Spoken Language Understanding"""
 
 import tensorflow as tf
 import os
 
-from Hermes.spoken_language_understanding.bi_lstm_model.bi_lstm import BLSTMModel
+from Hermes.spoken_language_understanding.transformer_model.transformer import TransformerModel
 from Hermes.spoken_language_understanding.dataset.loader import dataset
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
@@ -35,6 +35,7 @@ params = {
     'batch_size': 32,
     'max_len': 1000,
     'dropout_rate': 0.2,
+    'num_layers': 6,
     'kernel_size': 5,
     'num_patience': 3,
     'lr': 1e-4,
@@ -77,7 +78,9 @@ if __name__ == "__main__":
     params['word2idx'] = word2idx
     params['idx2word'] = idx2word
     params['vocab_size'] = len(word2idx) + 1
-    model = BLSTMModel(params['intent_size'], params['slot_size'], params['lr'], params['dropout_rate'], params['units'])
+    model = TransformerModel(params['intent_size'], params['slot_size'], params['lr=1e-4'], params['units'],
+                             params['hidden_units'], params['num_heads'], params['multiplier'], params['dropout_rate'],
+                             params['num_layers'])
     data = dataset(is_train=1, params=params)
 
     for words, (intent, slots) in data:
@@ -91,7 +94,7 @@ if __name__ == "__main__":
 
     print("Fitting model")
     model.fit(data, epochs=2)
-    model.save("bidirectional_lstm_model.h5")
+    model.save("transformer_model.h5")
 
     print("Evaluate model")
     model = tf.keras.models.load_model("bidirectional_lstm_model.h5")
