@@ -13,7 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
-"""A Decomposable Attention Model for Natural Language Inference"""
+"""A Bidirectional LSTM Model for Spoken Language Understanding"""
 import tensorflow as tf
 import time
 import logging

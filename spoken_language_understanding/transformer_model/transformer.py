@@ -13,34 +13,135 @@
 # limitations under the License.
 # ==============================================================================
 
-"""A Decomposable Attention Model for Natural Language Inference"""
+"""A Transformer Encoder Model for Spoken Language Understanding"""
 import tensorflow as tf
 import time
 import logging
 import numpy as np
 
 from tensorflow.keras import Model
-from tensorflow.keras.layers import Bidirectional, Dense, Dropout, LSTM
+from tensorflow.keras.layers import Dense, Dropout, Layer
 from tensorflow.keras.optimizers import Adam
 
 
-class BLSTMModel(Model):
+class LayerNorm(Layer):
+    def __init__(self, units=300):
+        super().__init__()
+        self.epsilon = 1e-6
+        self.units = units
+        self.scale = self.add_weight(shape=[self.units],
+                                     initializer=tf.ones_initializer(),
+                                     trainable=True)
+        self.bias = self.add_weight(shape=[self.units],
+                                    initializer=tf.zeros_initializer(),
+                                    trainable=True)
+
+    def call(self, inputs):
+        mean, variance = tf.nn.moments(inputs, axis=[-1], keepdims=True)
+        norm_x = (inputs - mean) * tf.math.rsqrt(variance + self.epsilon)
+        return norm_x * self.scale + self.bias
+
+
+class EncoderBlock(Model):
+    def __init__(self, SubModel, units=300, hidden_units=512, num_heads=8, multiplier=2, dropout_rate=0.2):
+        super().__init__()
+        self.layer_norm = LayerNorm(units)
+        self.sub_model = SubModel(units, hidden_units, num_heads, multiplier, dropout_rate)
+        self.dropout = Dropout(dropout_rate)
+
+    def call(self, inputs, training=False):
+        inputs, masks = inputs
+        x = self.layer_norm(inputs)
+        x = self.sub_model((x, masks), training=training)
+        x = self.dropout(x, training=training)
+        x += inputs
+        return x
+
+
+class PointwiseFFN(Model):
+    def __init__(self, units=300, hidden_units=512, num_heads=8, multiplier=2, dropout_rate=0.2):
+        super().__init__()
+        self.dense_1 = Dense(multiplier * units, activation=tf.nn.elu)
+        self.dropout = Dropout(dropout_rate)
+        self.dense_2 = Dense(units)
+
+    def call(self, inputs, training=True):
+        x, masks = inputs
+        return self.dense_2(self.dropout(self.dense_1(x), training=training))
+
+
+class MultiheadSelfAttention(Model):
+    def __init__(self, units=300, hidden_units=512, num_heads=8, multiplier=2, dropout_rate=0.2):
+        super().__init__()
+        self.qkv_linear = tf.keras.layers.Dense(3 * hidden_units)
+        self.dropout = Dropout(dropout_rate)
+        self.out_linear = Dense(units, activation=tf.nn.elu)
+        self.num_heads = num_heads
+        self.is_bidirectional = True
+
+    def call(self, inputs, training):
+        x, masks = inputs
+        time_steps = tf.shape(x)[1]
+        q_k_v = self.qkv_linear(x)
+        q, k, v = tf.split(q_k_v, 3, axis=-1)
+
+        if self.num_heads > 1:
+            q = tf.concat(tf.split(q, self.num_heads, axis=-1), axis=0)
+            k = tf.concat(tf.split(k, self.num_heads, axis=-1), axis=0)
+            v = tf.concat(tf.split(v, self.num_heads, axis=-1), axis=0)
+
+        align = tf.matmul(q, k, transpose_b=True) * tf.math.rsqrt(tf.cast(k.shape[-1], tf.float32))
+        if (masks is not None) or (not self.is_bidirectional):
+            paddings = tf.fill(tf.shape(align), float('-inf'))
+
+        if masks is not None:
+            c_masks = tf.tile(masks, [self.num_heads, 1])
+            c_masks = tf.tile(tf.expand_dims(c_masks, 1), [1, time_steps, 1])
+            align = tf.where(tf.equal(c_masks, 0), paddings, align)
+
+        if not self.is_bidirectional:
+            lower_tri = tf.linalg.LinearOperatorLowerTriangular(tf.ones(shape=(time_steps, time_steps))).to_dense()
+            causal_masks = tf.tile(tf.expand_dims(lower_tri, 0), [tf.shape(align)[0], 1, 1])
+            align = tf.where(tf.equal(causal_masks, 0), paddings, align)
+
+        align = tf.nn.softmax(align)
+        align = self.dropout(align, training=training)
+
+        if masks is not None:
+            q_masks = tf.tile(masks, [self.num_heads, 1])
+            q_masks = tf.tile(tf.expand_dims(q_masks, 2), [1, 1, time_steps])
+            align = align * tf.cast(q_masks, tf.float32)
+
+        x = tf.matmul(align, v)
+
+        if self.num_heads > 1:
+            x = tf.concat(tf.split(x, self.num_heads, axis=0), axis=2)
+        x = self.out_linear(x)
+        return x
+
+
+class TransformerModel(Model):
     EPOCHS = 1
     logger = logging.getLogger('tensorflow')
     logger.setLevel(logging.INFO)
 
-    def __init__(self, intent_size, slot_size, lr=1e-4, dropout_rate=0.2, units=300):
+    def __init__(self, intent_size, slot_size, lr=1e-4, units=300, hidden_units=512, num_heads=8, multiplier=2,
+                 dropout_rate=0.2, num_layers=6):
         super().__init__()
         self.embedding = tf.Variable(np.load('../data/embedding.npy'),
                                      dtype=tf.float32,
                                      trainable=False)
-        self.inp_dropout = Dropout(dropout_rate)
-        self.blstm = Bidirectional(LSTM(units,
-                                        return_state=True,
-                                        return_sequences=True))
-        self.intent_dropout = Dropout(dropout_rate)
-        self.fc_intent = Dense(units, activation='relu')
-        self.trans_params = self.add_weight(shape=(slot_size, slot_size))
+        self.inp_dropout_rate = Dropout(dropout_rate)
+        self.num_layers = num_layers
+        self.blocks = []
+        for i in range(self.num_layers):
+            self.blocks.append(EncoderBlock(
+                MultiheadSelfAttention, units, hidden_units, num_heads, multiplier, dropout_rate))
+            self.blocks.append(EncoderBlock(
+                PointwiseFFN, units, hidden_units, num_heads, multiplier, dropout_rate))
+
+        self.intent_dropout = tf.keras.layers.Dropout(dropout_rate)
+        self.fc_intent = tf.keras.layers.Dense(units, tf.nn.elu)
         self.out_linear_intent = Dense(intent_size)
         self.out_linear_slot = Dense(slot_size)
         self.optimizer = Adam(lr)
@@ -50,15 +151,36 @@ class BLSTMModel(Model):
         self.logger = logging.getLogger('tensorflow')
         self.logger.setLevel(logging.INFO)
 
-    def call(self, inputs, training=False):
+    @staticmethod
+    def get_timing_signal_1d(time_steps, channels):
+        start_id = 0
+        min_timescale = 1.0
+        max_timescale = 1e4
+        position = tf.cast(tf.range(time_steps) + start_id, tf.float32)
+        num_timescales = channels // 2
+        log_timescale_increment = (
+                tf.math.log(float(max_timescale) / float(min_timescale))
+                / tf.maximum(tf.cast(num_timescales, tf.float32) - 1, 1))
+        inv_timescales = min_timescale * tf.exp(tf.cast(tf.range(num_timescales), tf.float32) * -log_timescale_increment)
+        scaled_time = tf.expand_dims(position, 1) * tf.expand_dims(inv_timescales, 0)
+        signal = tf.concat([tf.sin(scaled_time), tf.cos(scaled_time)], axis=1)
+        signal = tf.pad(signal, [[0, 0], [0, tf.compat.v1.mod(channels, 2)]])
+        signal = tf.reshape(signal, [1, time_steps, channels])
+        return signal
+
+    def call(self, inputs, training):
         if inputs.dtype != tf.int32:
             inputs = tf.cast(inputs, tf.int32)
-        mask = tf.sign(inputs)
-        mask = tf.cast(mask, tf.bool)
+        masks = tf.sign(inputs)
         x = tf.nn.embedding_lookup(self.embedding, inputs)
-        x = self.inp_dropout(x, training=training)
-        x, h_state_f, _, h_state_b, _ = self.blstm(x, mask=mask)
-        x_intent = tf.concat([tf.reduce_max(x, 1), h_state_f, h_state_b], -1)
+        time_steps = tf.shape(x)[1]
+        x += self.get_timing_signal_1d(time_steps, self.units)
+        x = self.input_dropout(x, training=training)
+
+        for block in self.blocks:
+            x = block((x, masks), training=training)
+
+        x_intent = tf.reduce_max(x, 1)
         x_intent = self.intent_dropout(x_intent, training=training)
         x_intent = self.out_linear_intent(self.fc_intent(x_intent))
         x_slot = self.out_linear_slot(x)
