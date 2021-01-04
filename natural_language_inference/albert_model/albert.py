@@ -30,7 +30,7 @@ class AlbertInference(Model):
 
     def __init__(self, dropout_rate=0.2, units=300):
         super().__init__()
-        self.albert = TFAlbertModel.from_pretrained('bert-base-uncased',
+        self.albert = TFAlbertModel.from_pretrained('albert-base-uncased',
                                                     trainable=True)
         self.drop1 = tf.keras.layers.Dropout(dropout_rate)
         self.drop2 = tf.keras.layers.Dropout(dropout_rate)

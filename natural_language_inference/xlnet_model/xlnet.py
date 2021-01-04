@@ -30,8 +30,8 @@ class XLNetInference(Model):
 
     def __init__(self, dropout_rate=0.2, units=300):
         super().__init__()
-        self.xlnet = TFXLNetModel.from_pretrained('bert-base-uncased',
-                                                 trainable=True)
+        self.xlnet = TFXLNetModel.from_pretrained('xlnet-base-uncased',
+                                                  trainable=True)
         self.drop1 = tf.keras.layers.Dropout(dropout_rate)
         self.drop2 = tf.keras.layers.Dropout(dropout_rate)
         self.fc = tf.keras.layers.Dense(units, tf.nn.swish)

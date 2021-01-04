@@ -30,7 +30,7 @@ class RobertaInference(Model):
 
     def __init__(self, dropout_rate=0.2, units=300):
         super().__init__()
-        self.roberta = TFRobertaModel.from_pretrained('bert-base-uncased',
+        self.roberta = TFRobertaModel.from_pretrained('roberta-base-uncased',
                                                 trainable=True)
         self.drop1 = tf.keras.layers.Dropout(dropout_rate)
         self.drop2 = tf.keras.layers.Dropout(dropout_rate)
@@ -39,7 +39,7 @@ class RobertaInference(Model):
 
     def call(self, roberta_inps, training):
         roberta_inps = [tf.cast(inp, tf.int32) for inp in roberta_inps]
-        x = self.bert(roberta_inps, training=training)[1]
+        x = self.roberta(roberta_inps, training=training)[1]
         x = self.drop1(x, training=training)
         x = self.fc(x)
         x = self.drop2(x, training=training)

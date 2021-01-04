@@ -1,6 +1,5 @@
 import tensorflow as tf
 import numpy as np
-import re
 
 from collections import Counter
 from transformers import BertTokenizer, RobertaTokenizer, AlbertTokenizer, XLNetTokenizer
@@ -56,27 +55,67 @@ def data_generator(f_path, params):
             yield words, (intent, slots)
 
 
-def bert_data_generator(f_paths, params):
-    label2idx = {'neutral': 0, 'entailment': 1, 'contradiction': 2}
-    for f_path in f_paths:
-        with open(f_path) as f:
-            print('Reading', f_path)
-            for line in f:
-                line = line.rstrip()
-                label, text1, text2 = line.split('\t')
-                if label == '-':
-                    continue
-                text1 = bert_tokenizer.tokenize(text1)
-                text2 = bert_tokenizer.tokenize(text2)
-                if len(text1) + len(text2) + 3 > params['max_len']:
-                    _max_len = (params['max_len'] - 3) // 2
-                    text1 = text1[:_max_len]
-                    text2 = text2[:_max_len]
-                text = ['[CLS]'] + text1 + ['[SEP]'] + text2 + ['[SEP]']
-                text = bert_tokenizer.convert_tokens_to_ids(text)
-                seg = [0] + [0] * len(text1) + [0] + [1] * len(text2) + [1]
-                y = label2idx[label]
-                yield text, seg, y
+def bert_data_generator(f_path, params):
+    with open(f_path) as f:
+        for line in f:
+            line = line.rstrip()
+            text, slot_intent = line.split('\t')
+            words = text.split()[1:-1]
+            slot_intent = slot_intent.split()
+            slots, intent = slot_intent[1:-1], slot_intent[-1]
+            words = ['[CLS]'] + bert_tokenizer.tokenize(words) + ['[SEP]']
+            intent = params['intent2idx'].get(intent, len(params['intent2idx']))
+            slots = [params['slot2idx'].get(s, len(params['slot2idx'])) for s in slots]
+            seg = [0] * len(words)
+            words = bert_tokenizer.convert_tokens_to_ids(words)
+            yield words, seg, (intent, slots)
+
+def albert_data_generator(f_path, params):
+    with open(f_path) as f:
+        for line in f:
+            line = line.rstrip()
+            text, slot_intent = line.split('\t')
+            words = text.split()[1:-1]
+            slot_intent = slot_intent.split()
+            slots, intent = slot_intent[1:-1], slot_intent[-1]
+            words = ['[CLS]'] + albert_tokenizer.tokenize(words) + ['[SEP]']
+            intent = params['intent2idx'].get(intent, len(params['intent2idx']))
+            slots = [params['slot2idx'].get(s, len(params['slot2idx'])) for s in slots]
+            seg = [0] * len(words)
+            words = albert_tokenizer.convert_tokens_to_ids(words)
+            yield words, seg, (intent, slots)
+
+
+def roberta_data_generator(f_path, params):
+    with open(f_path) as f:
+        for line in f:
+            line = line.rstrip()
+            text, slot_intent = line.split('\t')
+            words = text.split()[1:-1]
+            slot_intent = slot_intent.split()
+            slots, intent = slot_intent[1:-1], slot_intent[-1]
+            words = ['[CLS]'] + roberta_tokenizer.tokenize(words) + ['[SEP]']
+            intent = params['intent2idx'].get(intent, len(params['intent2idx']))
+            slots = [params['slot2idx'].get(s, len(params['slot2idx'])) for s in slots]
+            seg = [0] * len(words)
+            words = roberta_tokenizer.convert_tokens_to_ids(words)
+            yield words, seg, (intent, slots)
+
+
+def xlnet_data_generator(f_path, params):
+    with open(f_path) as f:
+        for line in f:
+            line = line.rstrip()
+            text, slot_intent = line.split('\t')
+            words = text.split()[1:-1]
+            slot_intent = slot_intent.split()
+            slots, intent = slot_intent[1:-1], slot_intent[-1]
+            words = ['<s>'] + xlnet_tokenizer.tokenize(words) + ['</s>']
+            intent = params['intent2idx'].get(intent, len(params['intent2idx']))
+            slots = [params['slot2idx'].get(s, len(params['slot2idx'])) for s in slots]
+            seg = [0] * len(words)
+            words = xlnet_tokenizer.convert_tokens_to_ids(words)
+            yield words, seg, (intent, slots)
 
 
 def dataset(is_training, params):
@@ -102,22 +141,96 @@ def dataset(is_training, params):
     return ds
 
 
-def bert_dataset(is_train, params):
-    if is_train:
-        data = tf.data.Dataset.from_generator(lambda: bert_data_generator(params['train_path'], params),
-                                              output_shapes=([None], [None], ()),
-                                              output_types=(tf.int32, tf.int32, tf.int32))
-        data = data.shuffle(params['num_samples'])
-        data = data.padded_batch(params['batch_size'], ([None], [None], ()), (0, 0, -1))
-        data = data.prefetch(tf.data.experimental.AUTOTUNE)
+def bert_dataset(is_training, params):
+    _shapes = ([None], ((), [None]))
+    _types = (tf.int32, (tf.int32, tf.int32))
+    _pads = (0, (-1, 0))
+
+    if is_training:
+        ds = tf.data.Dataset.from_generator(
+            lambda: bert_data_generator(params['train_path'], params),
+            output_shapes=([None], [None], ((), [None])),
+            output_types=(tf.int32, tf.int32, (tf.int32, tf.int32)))
+        ds = ds.shuffle(params['num_samples'])
+        ds = ds.padded_batch(params['batch_size'], ([None], [None], ((), [None])), (0, 0, (-1, 0)))
+        ds = ds.prefetch(tf.data.experimental.AUTOTUNE)
     else:
-        data = tf.data.Dataset.from_generator(lambda: bert_data_generator(params['test_path'], params),
-                                              output_shapes=([None], [None], ()),
-                                              output_types=(tf.int32, tf.int32, tf.int32))
-        data = data.shuffle(params['num_samples'])
-        data = data.padded_batch(params['batch_size'], ([None], [None], ()), (0, 0, -1))
-        data = data.prefetch(tf.data.experimental.AUTOTUNE)
-    return data
+        ds = tf.data.Dataset.from_generator(
+            lambda: data_generator(params['test_path'], params),
+            output_shapes=([None], [None], ((), [None])),
+            output_types=(tf.int32, tf.int32, (tf.int32, tf.int32)))
+        ds = ds.padded_batch(params['batch_size'], ([None], [None], ((), [None])), (0, 0, (-1, 0)))
+        ds = ds.prefetch(tf.data.experimental.AUTOTUNE)
+    return ds
+
+
+def albert_dataset(is_training, params):
+    _shapes = ([None], ((), [None]))
+    _types = (tf.int32, (tf.int32, tf.int32))
+    _pads = (0, (-1, 0))
+
+    if is_training:
+        ds = tf.data.Dataset.from_generator(
+            lambda: albert_data_generator(params['train_path'], params),
+            output_shapes=([None], [None], ((), [None])),
+            output_types=(tf.int32, tf.int32, (tf.int32, tf.int32)))
+        ds = ds.shuffle(params['num_samples'])
+        ds = ds.padded_batch(params['batch_size'], ([None], [None], ((), [None])), (0, 0, (-1, 0)))
+        ds = ds.prefetch(tf.data.experimental.AUTOTUNE)
+    else:
+        ds = tf.data.Dataset.from_generator(
+            lambda: albert_data_generator(params['test_path'], params),
+            output_shapes=([None], [None], ((), [None])),
+            output_types=(tf.int32, tf.int32, (tf.int32, tf.int32)))
+        ds = ds.padded_batch(params['batch_size'], ([None], [None], ((), [None])), (0, 0, (-1, 0)))
+        ds = ds.prefetch(tf.data.experimental.AUTOTUNE)
+    return ds
+
+
+def roberta_dataset(is_training, params):
+    _shapes = ([None], ((), [None]))
+    _types = (tf.int32, (tf.int32, tf.int32))
+    _pads = (0, (-1, 0))
+
+    if is_training:
+        ds = tf.data.Dataset.from_generator(
+            lambda: roberta_data_generator(params['train_path'], params),
+            output_shapes=([None], [None], ((), [None])),
+            output_types=(tf.int32, tf.int32, (tf.int32, tf.int32)))
+        ds = ds.shuffle(params['num_samples'])
+        ds = ds.padded_batch(params['batch_size'], ([None], [None], ((), [None])), (0, 0, (-1, 0)))
+        ds = ds.prefetch(tf.data.experimental.AUTOTUNE)
+    else:
+        ds = tf.data.Dataset.from_generator(
+            lambda: roberta_data_generator(params['test_path'], params),
+            output_shapes=([None], [None], ((), [None])),
+            output_types=(tf.int32, tf.int32, (tf.int32, tf.int32)))
+        ds = ds.padded_batch(params['batch_size'], ([None], [None], ((), [None])), (0, 0, (-1, 0)))
+        ds = ds.prefetch(tf.data.experimental.AUTOTUNE)
+    return ds
+
+
+def xlnet_dataset(is_training, params):
+    _shapes = ([None], ((), [None]))
+    _types = (tf.int32, (tf.int32, tf.int32))
+    _pads = (0, (-1, 0))
+
+    if is_training:
+        ds = tf.data.Dataset.from_generator(
+            lambda: xlnet_data_generator(params['train_path'], params),
+            output_shapes=([None], [None], ((), [None])),
+            output_types=(tf.int32, tf.int32, (tf.int32, tf.int32)))
+        ds = ds.shuffle(params['num_samples'])
+        ds = ds.padded_batch(params['batch_size'], ([None], [None], ((), [None])), (0, 0, (-1, 0)))
+        ds = ds.prefetch(tf.data.experimental.AUTOTUNE)
+    else:
+        ds = tf.data.Dataset.from_generator(
+            lambda: xlnet_data_generator(params['test_path'], params),
+            output_shapes=([None], [None], ((), [None])),
+            output_types=(tf.int32, tf.int32, (tf.int32, tf.int32)))
+        ds = ds.padded_batch(params['batch_size'], ([None], [None], ((), [None])), (0, 0, (-1, 0)))
+        ds = ds.prefetch(tf.data.experimental.AUTOTUNE)
+    return ds
 
 
 if __name__ == "__main__":
@@ -141,10 +254,8 @@ if __name__ == "__main__":
             counter_intent.update([intent])
             counter_slot.update(slots)
 
-
     def freq_func(x):
         return [w for w, freq in x.most_common()]
-
 
     words = ['<pad>'] + freq_func(counter_word)
     intents = freq_func(counter_intent)
