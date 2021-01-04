@@ -35,5 +35,9 @@ Some of the popular NLP tasks implemented in Hermes includes text classification
 >* Bidirectional LSTM based Spoken Language Understanding Model
 >* Transformer based Spoken Language Understanding Model
 >* Bidirectional GRU based Spoken Language Understanding Model
+>* BERT based model for Spoken Language Understanding Model
+>* ALBERT based model for Spoken Language Understanding Model
+>* RoBERTa based model for Spoken Language Understanding Model
+>* XLNet based model for Spoken Language Understanding Model 
 
 HERMES was the ancient Greek god of language. One of the cleverest and most mischievous of the Olympian gods, who invented the lyre!
