@@ -290,7 +290,7 @@ if __name__ == "__main__":
     word2idx['<pad>'] = 0
     for i, word in enumerate(words):
         word = word.rstrip()
-        word2idx[word] = i
+        word2idx[word] = i+1
 
     embedding = np.zeros((len(word2idx) + 1, 300))
     with open('../data/glove.840B.300d.txt', encoding="utf-8") as f:
