@@ -40,4 +40,8 @@ Some of the popular NLP tasks implemented in Hermes includes text classification
 >* RoBERTa based model for Spoken Language Understanding Model
 >* XLNet based model for Spoken Language Understanding Model 
 
+### [Semantic Parsing](https://github.com/Nikhil-Xavier-DS/Hermes/tree/master/semantic_parsing)
+>* Sequence to Sequence GRU Model
+###### Work in progress
+
 ##### HERMES was the ancient Greek god of language. One of the cleverest and most mischievous of the Olympian gods, who invented the lyre!
