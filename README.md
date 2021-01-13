@@ -1,12 +1,12 @@
 # Hermes - Deep Natural Language Processing Framework
-##### Hermes is a library built on top of TensorFlow 2 designed to provide simple, abstractions for natural language processing utilizing end to end deep learning models and aggressive modules. Hermes utilizes latest natural language processing algorithm and builds in in TensorFlow entirely or creates a wrapper using Tensorflow. Hermes is a model zoo various NLP algorithms implemented with object-oriented programming for easy encapsulation and understanding. 
+Hermes is a library built on top of TensorFlow 2 designed to provide simple, abstractions for natural language processing utilizing end to end deep learning models and aggressive modules. Hermes utilizes latest natural language processing algorithm and builds in in TensorFlow entirely or creates a wrapper using Tensorflow. Hermes is a model zoo various NLP algorithms implemented with object-oriented programming for easy encapsulation and understanding. 
 
 Natural language processing is a subfield of linguistics, computer science, and artificial intelligence concerned with the interactions between computers and human languages, in particular, programming computers to process and analyze large amounts of natural language data. Deep neural network-style machine learning methods are widespread in natural language processing and can achieve state-of-the-art results in many natural language tasks. 
 
 Some of the popular NLP tasks implemented in Hermes includes text classification, sentences inference, machine translation.
 
 ### [Natural Language Classification](https://github.com/Nikhil-Xavier-DS/Hermes/tree/master/natural_language_classifier)
-Text classification is the task of assigning a set of predefined categories to sentences. Text classification in Hermes deals with Sentiment analysis. Sentiment analysis  is a natural language processing technique used to interpret and classify emotions in subjective data. For sentiment analysis, the algorithms use IMDB dataset.
+##### Text classification is the task of assigning a set of predefined categories to sentences. Text classification in Hermes deals with Sentiment analysis. Sentiment analysis  is a natural language processing technique used to interpret and classify emotions in subjective data. For sentiment analysis, the algorithms use IMDB dataset.
 >* Feedforward Attention based Text Classification Models
 >* Parallel Recurrent based Text Classification Models
 >* BERT based model for Text Classification Model
