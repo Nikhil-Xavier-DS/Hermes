@@ -13,7 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
-"""A GRU based Sequence to Sequence Model for Semantic Parsing"""
+"""A LSTM based Sequence to Sequence Model for Semantic Parsing"""
 
 import time
 import logging
@@ -22,7 +22,7 @@ import tensorflow as tf
 import tensorflow_addons as tfa
 
 from tensorflow.keras import Model
-from tensorflow.keras.layers import Bidirectional, Dropout, GRU, GRUCell, Layer
+from tensorflow.keras.layers import Bidirectional, Dropout, LSTM, LSTMCell, Layer
 from tensorflow.keras.optimizers import Adam
 from tensorflow_addons.seq2seq import AttentionWrapper, BahdanauAttention, BasicDecoder, BeamSearchDecoder
 
@@ -31,20 +31,22 @@ class Encoder(Model):
     def __init__(self, units=300, dropout_rate=0.2):
         super().__init__()
         self.dropout = Dropout(dropout_rate)
-        self.bgru = Bidirectional(GRU(units,
-                                      return_state=True,
-                                      return_sequences=True,
-                                      zero_output_for_mask=True))
+        self.blstm = Bidirectional(LSTM(units,
+                                        return_state=True,
+                                        return_sequences=True,
+                                        zero_output_for_mask=True))
         self.fc = tf.keras.layers.Dense(units, 'relu')
 
     def call(self, inputs, mask, training):
         if mask.dtype != tf.bool:
             mask = tf.cast(mask, tf.bool)
         x = self.dropout(inputs, training=training)
-        output, forward_state, backward_state = self.bgru(x, mask=mask)
-        concat_state = tf.concat((forward_state, backward_state), axis=-1)
-        state = self.fc(concat_state)
-        return output, state
+        output, forward_state_h, forward_state_c, backward_state_h, backward_state_c = self.blstm(x, mask=mask)
+        concat_state_h = tf.concat((forward_state_h, backward_state_h), axis=-1)
+        concat_state_c = tf.concat((forward_state_c, backward_state_c), axis=-1)
+
+        states = [self.fc(concat_state_h), self.fc(concat_state_c)]
+        return output, states
 
 
 class ProjectedLayer(Layer):
@@ -71,7 +73,7 @@ class Seq2SeqModel(Model):
         self.encoder = Encoder(units=units, dropout_rate=dropout_rate)
         self.attention_mechanism = BahdanauAttention(units=units)
         self.decoder_cell = AttentionWrapper(
-            GRUCell(units),
+            LSTMCell(units),
             self.attention_mechanism,
             attention_layer_size=units)
         self.projected_layer = ProjectedLayer(self.embed.embedding)
@@ -147,7 +149,7 @@ class Seq2SeqModel(Model):
                 with tf.GradientTape() as tape:
                     logits = self((source, target_in), training=True)
                     loss = tf.compat.v1.losses.softmax_cross_entropy(
-                        onehot_labels=tf.one_hot(target_out, self.vocab_size+1),
+                        onehot_labels=tf.one_hot(target_out, self.vocab_size + 1),
                         logits=logits,
                         weights=tf.cast(tf.sign(target_out), tf.float32),
                         label_smoothing=.2)

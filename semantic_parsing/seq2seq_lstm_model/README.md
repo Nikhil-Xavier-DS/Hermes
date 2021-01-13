@@ -1,8 +1,8 @@
-# [Sequence to Sequence GRU based Semantic Parsing Model](https://github.com/Nikhil-Xavier-DS/Hermes/tree/master/semantic_parsing/seq2seq_gru_model)
+# [Sequence to Sequence LSTM based Semantic Parsing Model](https://github.com/Nikhil-Xavier-DS/Hermes/tree/master/semantic_parsing/seq2seq_lstm_model)
 The code is implemented based on the publication, [Semantic Parsing for Task Oriented Dialog using Hierarchical Representations](https://arxiv.org/abs/1810.07942). 
 Task oriented dialog systems typically first parse user utterances to semantic frames comprised of intents and slots. Previous work on task oriented intent and slot-filling work has been restricted to one intent per query and one slot label per token, and thus cannot model complex compositional requests. Alternative semantic parsing systems have represented queries as logical forms, but these are challenging to annotate and parse. The publication proposes a hierarchical annotation scheme for semantic parsing that allows the representation of compositional queries, and can be efficiently and accurately parsed by standard constituency parsing models.
 
-<img src="https://dl.acm.org/cms/attachment/8f4d9878-757b-402c-9626-3a841258b7c3/www20-73-fig2.jpg" width="360">
+<img src="https://d3i71xaburhd42.cloudfront.net/ea3928baba12de2fba9ce76e6804bfe50fe1cef3/1-Figure1-1.png" width="360">
 
 
 #### Reference

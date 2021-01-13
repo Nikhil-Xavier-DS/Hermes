@@ -19,7 +19,7 @@ import tensorflow as tf
 import os
 
 from Hermes.semantic_parsing.seq2seq_gru_model.seq2seq import Seq2SeqModel
-from Hermes.natural_language_inference.dataset.loader import dataset
+from Hermes.semantic_parsing.dataset.loader import dataset
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 print("TensorFlow Version", tf.__version__)

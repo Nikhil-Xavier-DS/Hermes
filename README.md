@@ -41,7 +41,10 @@ Some of the popular NLP tasks implemented in Hermes includes text classification
 >* XLNet based model for Spoken Language Understanding Model 
 
 ### [Semantic Parsing](https://github.com/Nikhil-Xavier-DS/Hermes/tree/master/semantic_parsing)
->* Sequence to Sequence GRU Model
+Semantic parsing is the task of converting a natural language utterance to a logical form: a machine-understandable representation of its meaning. Semantic parsing can thus be understood as extracting the precise meaning of an utterance. Applications of semantic parsing include machine translation, question answering, ontology induction, automated reasoning, and code generation.
+
+>* Sequence to Sequence GRU based Semantic Parsing Model
+>* Sequence to Sequence LSTM based Semantic Parsing Model
 ###### Work in progress
 
 ##### HERMES was the ancient Greek god of language. One of the cleverest and most mischievous of the Olympian gods, who invented the lyre!
