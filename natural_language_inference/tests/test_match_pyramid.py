@@ -28,6 +28,7 @@ print('GPU Enabled:', tf.test.is_gpu_available())
 params = {
     'train_path': '../data/train.txt',
     'test_path': '../data/test.txt',
+    'word_path': '../data/word.txt',
     'num_samples': 25000,
     'units': 300,
     'num_labels': 3,
@@ -50,7 +51,7 @@ params = {
 
 if __name__ == "__main__":
     word2idx = {}
-    with open(params["'train_path'"]) as f:
+    with open(params['word_path']) as f:
         for i, line in enumerate(f):
             line = line.rstrip()
             word2idx[line] = i

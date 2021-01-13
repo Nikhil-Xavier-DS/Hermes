@@ -30,8 +30,8 @@ def data_generator(path, params):
             text_raw, text_tokenized, label = line.split('\t')
             text_tokenized = text_tokenized.lower().split()
             label = label.replace('[', '[ ').lower().split()
-            source = [params['tgt2idx'].get(w, len(params['tgt2idx'])) for w in text_tokenized]
-            target = [params['tgt2idx'].get(w, len(params['tgt2idx'])) for w in label]
+            source = [params['word2idx'].get(w, len(params['word2idx'])) for w in text_tokenized]
+            target = [params['word2idx'].get(w, len(params['word2idx'])) for w in label]
             target_in = [1] + target
             target_out = target + [2]
             yield source, target_in, target_out

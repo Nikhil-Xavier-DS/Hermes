@@ -62,7 +62,7 @@ class Seq2SeqModel(Model):
     logger = logging.getLogger('tensorflow')
     logger.setLevel(logging.INFO)
 
-    def __init__(self, lr=1e-4, dropout_rate=0.2, units=300, beam_width=12):
+    def __init__(self, lr=1e-4, dropout_rate=0.2, units=300, beam_width=12, vocab_size=9000):
         super().__init__()
         self.embedding = tf.Variable(np.load('../data/embedding.npy'),
                                      dtype=tf.float32,
@@ -85,6 +85,7 @@ class Seq2SeqModel(Model):
             beam_width=beam_width,
             embedding_fn=lambda x: tf.nn.embedding_lookup(self.embedding, x),
             output_layer=self.projected_layer)
+        self.vocab_size = vocab_size
         self.optimizer = Adam(lr)
         self.accuracy = tf.keras.metrics.Accuracy()
         self.mean = tf.keras.metrics.Mean()
@@ -137,7 +138,7 @@ class Seq2SeqModel(Model):
 
         return logits
 
-    def fit(self, data, epochs=EPOCHS, vocab_size=9000):
+    def fit(self, data, epochs=EPOCHS):
         t0 = time.time()
         step = 0
         epoch = 1
@@ -146,7 +147,7 @@ class Seq2SeqModel(Model):
                 with tf.GradientTape() as tape:
                     logits = self((source, target_in), training=True)
                     loss = tf.compat.v1.losses.softmax_cross_entropy(
-                        onehot_labels=tf.one_hot(target_out, (9000+1)),
+                        onehot_labels=tf.one_hot(target_out, self.vocab_size+1),
                         logits=logits,
                         weights=tf.cast(tf.sign(target_out), tf.float32),
                         label_smoothing=.2)

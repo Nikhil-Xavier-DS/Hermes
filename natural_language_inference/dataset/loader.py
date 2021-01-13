@@ -292,6 +292,11 @@ if __name__ == "__main__":
         word = word.rstrip()
         word2idx[word] = i+1
 
+    for vocab_li, path in zip(words, ['../data/word.txt']):
+        with open(path, 'w') as f:
+            for w in vocab_li:
+                f.write(w + '\n')
+
     embedding = np.zeros((len(word2idx) + 1, 300))
     with open('../data/glove.840B.300d.txt', encoding="utf-8") as f:
         count = 0
