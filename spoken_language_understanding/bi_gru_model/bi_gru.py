@@ -57,7 +57,7 @@ class BGRUModel(Model):
         mask = tf.cast(mask, tf.bool)
         x = tf.nn.embedding_lookup(self.embedding, inputs)
         x = self.inp_dropout(x, training=training)
-        x, h_state_f, _, h_state_b, _ = self.gru(x, mask=mask)
+        x, h_state_f, _, h_state_b, _ = self.bgru(x, mask=mask)
         x_intent = tf.concat([tf.reduce_max(x, 1), h_state_f, h_state_b], -1)
         x_intent = self.intent_dropout(x_intent, training=training)
         x_intent = self.out_linear_intent(self.fc_intent(x_intent))
