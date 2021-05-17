@@ -1,5 +1,5 @@
 # Hermes - Deep Natural Language Processing Framework
-Hermes is a library built on top of TensorFlow 2 designed to provide simple, abstractions for natural language processing utilizing end to end deep learning models and aggressive modules. Hermes utilizes latest natural language processing algorithm and builds in in TensorFlow entirely or creates a wrapper using Tensorflow. Hermes is a model zoo various NLP algorithms implemented with object-oriented programming for easy encapsulation and understanding. 
+Hermes is a library built on top of TensorFlow 2 designed to provide simple, abstractions for natural language processing utilizing end to end deep learning models and aggressive modules. Hermes utilizes latest natural language processing algorithm and builds in TensorFlow entirely or creates a wrapper using Tensorflow. Hermes is a model zoo of various NLP algorithms implemented with object-oriented programming for easy encapsulation and understanding. 
 
 Natural language processing is a subfield of linguistics, computer science, and artificial intelligence concerned with the interactions between computers and human languages, in particular, programming computers to process and analyze large amounts of natural language data. Deep neural network-style machine learning methods are widespread in natural language processing and can achieve state-of-the-art results in many natural language tasks. 
 
@@ -35,7 +35,7 @@ Neural machine translation (NMT) is an approach to machine translation that uses
 > ##### Dataset to be added
 
 ### [Spoken Language Understanding](https://github.com/Nikhil-Xavier-DS/Hermes/tree/master/spoken_language_understanding)
-Spoken language understanding (SLU) is an emerging field in between the areas of speech processing and natural language processing. The term spoken language understanding has largely been coined for targeted understanding of human speech directed at machines. For natural language inference, the algorithms use the ATIS dataset.
+Spoken language understanding (SLU) is an emerging field in between the areas of speech processing and natural language processing. The term spoken language understanding has largely been coined for targeted understanding of human speech directed at machines. For spoken language understanding, the algorithms use the ATIS dataset.
 >* Bidirectional LSTM based Spoken Language Understanding Model
 >* Transformer based Spoken Language Understanding Model
 >* Bidirectional GRU based Spoken Language Understanding Model
