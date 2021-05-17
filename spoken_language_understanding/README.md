@@ -64,8 +64,6 @@ Language model pre-training has led to significant performance gains but careful
 
 RoBERTa shows that performance can be substantially improved by training the model longer, with bigger batches over more data; removing the next sentence prediction objective; training on longer sequences; and dynamically changing the masking pattern applied to the training data. 
 
-<img src="https://pytorch.org/tutorials/_images/bert.png" width="360">
-
 RoBERTa has the same architecture as BERT, but uses a byte-level BPE as a tokenizer (same as GPT-2) and uses a different pretraining scheme.
 
 
