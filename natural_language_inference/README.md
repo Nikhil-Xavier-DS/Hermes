@@ -41,7 +41,7 @@ BERT is a model with absolute position embeddings so it’s usually advised to p
 
 BERT was trained with the masked language modeling (MLM) and next sentence prediction (NSP) objectives. It is efficient at predicting masked tokens and at NLU in general, but is not optimal for text generation.
 
-###[ALBERT based Natural Language Inference Models](https://github.com/Nikhil-Xavier-DS/Hermes/tree/master/natural_language_inference/albert_model)
+### [ALBERT based Natural Language Inference Models](https://github.com/Nikhil-Xavier-DS/Hermes/tree/master/natural_language_inference/albert_model)
 The code is implemented based on the publication, [ ALBERT: A Lite BERT for Self-supervised Learning of Language Representations](https://arxiv.org/abs/1909.11942). The paper proposes two parameter-reduction techniques to lower memory consumption and increase the training speed of BERT:
 a) Splitting the embedding matrix into two smaller matrices.
 b) Using repeating layers split among groups.
